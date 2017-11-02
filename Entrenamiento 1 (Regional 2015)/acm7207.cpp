@@ -34,59 +34,76 @@ int func(int c, int i){
     }
 }
 
-void bfs(graph& g, vi& price){
-    rep(i,check.size()){
-        if(check[i]==-1)
-            continue;
-        //cout<<"i: "<<i<<endl;
-        queue<int> q;
-        q.push(i);
-        par temp = {0,0};
-        int t=1;
-        if(i>=d){
-            t*=-1;
-        }
-        //cout<<"temp: "<<temp.first<<endl;
-        while(!q.empty()){
-            int u = q.front(); q.pop();
-            //cout<<"u: "<<u<<endl;
-            for(int v: g[u]){
-                //cout<<v<<endl;
-                if(check[v]==-1)
-                    continue;
-                q.push(v);
-                //cout<<"t,g: "<<t<<" "<<price[v]<<" v: "<<v<<endl;
-                temp.first+=t;
-                temp.second+=price[v];
-                check[v]=-1;
-            }
-            t*=-1;
-            //cout<<"temp: "<<temp.first<<endl;
-        }
-        if(g[i].size()==0){
-            temp.first+=t;
-            temp.second+=price[i];
-        }
-        comp.pb(temp);
+struct edge
+{
+    int u,v; ll w;
+    edge(int u, int v, ll w) : u(u), v(v), w(w) {}
+
+    bool operator< (const edge &o) const
+    {
+        return w < o.w;
     }
-}
+};
+
+struct UnionFind
+{
+    vector<int> P,rank;
+
+    UnionFind(int N)
+    {
+        P.resize(N); for(int i = 0; i < N; ++i) P[i] = i;
+        rank.assign(N,0);
+    }
+
+    int findSet(int u)
+    {
+        return u == P[u] ? u : P[u] = findSet(P[u]);
+    }
+
+    bool isSameSet(int u, int v)
+    {
+        return findSet(u) == findSet(v);
+    }
+
+    void joinSets(int u, int v)
+    {
+        if(isSameSet(u,v)) return;
+        u = findSet(u); v = findSet(v);
+
+        if(rank[u] < rank[v]) P[u] = v;
+        else
+        {
+            P[v] = u;
+            if(rank[u] == rank[v]) ++rank[u];
+        }
+    }
+};
+
 
 int main(){
     int r,b;
     while(cin>>d>>p>>r>>b){
         check = vi(d+p);
-        graph g = graph(d+p);
         vi price = vi(d+p);
         rep(i,d+p){
             cin>>price[i];
         }
+        UnionFind U(d+p);
         rep(i,r){
             int a,b;
             cin>>a>>b;
-            g[a-1].pb(d+b-1);
-            g[d+b-1].pb(a-1);
+            U.joinSets(a-1,d+b-1);
         }
-        bfs(g,price);
+        comp = vp(d+p,par(0,0));
+        rep(i,d+p){
+            comp[U.findSet(i)].first+= i < d ? -1 : 1;
+            comp[U.findSet(i)].second+=price[i];
+        }
+        /*for(auto p : comp){
+            cout<<"comp:"<<p.first<<" "<<p.second<<endl;
+        }*/
+        
+        //bfs(g,price);
         //rep(i,comp.size()) cout<<"comp: "<<comp[i].first<<" "<<comp[i].second<<endl;
         cout<<d+func(b,comp.size()-1)<<" ";
         rep(i,comp.size()){
