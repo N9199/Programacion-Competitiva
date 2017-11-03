@@ -34,17 +34,6 @@ int func(int c, int i){
     }
 }
 
-struct edge
-{
-    int u,v; ll w;
-    edge(int u, int v, ll w) : u(u), v(v), w(w) {}
-
-    bool operator< (const edge &o) const
-    {
-        return w < o.w;
-    }
-};
-
 struct UnionFind
 {
     vector<int> P,rank;
