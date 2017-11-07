@@ -22,7 +22,7 @@ typedef vector<viii > wgraph;
 
 wgraph offices;
 vd tax;
-bool cmp(iiii a, iiii b) {return get<1>(a)*get<3>(a)+get<2>(a) < get<1>(b)*get<3>(b)+get<2>(b);}
+bool cmp(iiii a, iiii b) {return get<1>(a)*get<3>(a)+get<2>(a) > get<1>(b)*get<3>(b)+get<2>(b);}
 
 double dist(double t, int start){
     priority_queue<iiii, viiii, function<bool(iiii,iiii)>> q(cmp);
@@ -36,7 +36,7 @@ double dist(double t, int start){
             continue;
         for(auto n : offices[get<0>(u)]){
             double w = get<1>(n)*t+get<2>(n);
-            if (tax[get<0>(u)] + w < tax[get<0>(n)]){
+            if (tax[get<0>(u)] + w < tax[get<0>(n)] or tax[get<0>(n)] < -0.5){
                 tax[get<0>(n)] = tax[get<0>(u)] + w;
                 q.emplace(get<0>(n),get<1>(n),get<2>(n),t);
             }
@@ -59,14 +59,15 @@ int main(){
         }
         int iterations = 60;
         double right = 0, left = 24*60;
+        double leftThird,rightThird,dist1,dist2;
         rep(i,iterations){
             //cout<<right<<" "<<left<<endl;
-            double leftThird = left + (right-left)/3;
-            double rightThird = right + (left-right)/3;
-            tax = vd(n,1e18);
-            double dist1 = dist(leftThird,0);
-            tax = vd(n,1e18);
-            double dist2 = dist(rightThird,0);
+            leftThird = left + (right-left)/3.0;
+            rightThird = right + (left-right)/3.0;
+            tax = vd(n,-1);
+            dist1 = dist(leftThird,0);
+            tax = vd(n,-1);
+            dist2 = dist(rightThird,0);
             if (dist1<dist2)
                 left = leftThird;
             else
