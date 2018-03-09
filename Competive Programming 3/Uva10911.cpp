@@ -16,21 +16,23 @@ typedef vector<vp > wgraph;
 #define eb emplace_back
 
 double dist(par a, par b){
-    return sqrt((a.first-b.first)^2+(a.second+b.second)^2);
+    return sqrt((a.first-b.first)*(a.first-b.first)+(a.second-b.second)*(a.second-b.second));
 }
 
 double backtracking(vp points, double dmin, double current){
     if(points.size()==0)
         return current;
-    //cout << points.size() << endl;
+    cout << "points.size() " << points.size() << "\n";
+    cout << "dmin: " << dmin << '\n';
     /*for( auto point : points){
-        cout << "Point:" << point.first << " " << point.second << " ";
-    }
-    cout << endl;*/
-    rep(i,points.size()-1)
-        repx(j,i+1,points.size()){
+        cout << "Point: " << point.first << "," << point.second << " ";
+    }*/
+    //cout << '\n';
+    repx(i,1,points.size())
+        rep(j,i){
             if(current + dist(points[i], points[j]) < dmin){
-                if(points.size()>=2){
+                cout << current << " " << dmin << " " << points[i].first << "," << points[i].second<< " " << points[j].first << "," << points[j].second << endl;
+                if(points.size()>2){
                     vp temp = points;
                     double asdf = dist(points[i], points[j]);
                     vp::iterator it1 = find(temp.begin(), temp.end(), points[i]);
@@ -38,14 +40,14 @@ double backtracking(vp points, double dmin, double current){
                     vp::iterator it2 = find(temp.begin(), temp.end(), points[j]);
                     temp.erase(it2);
                     asdf = backtracking(temp, dmin, current + asdf);
-                    cout << "dmin: " << dmin << " asdf: " << asdf << endl;
+                    //cout << "dmin: " << dmin << " asdf: " << asdf << endl;
                     dmin = min(dmin, current + asdf);
                 }else{
                     dmin = current + dist(points[i], points[j]);
                 }
             }
         }
-    cout << "dmin: " << dmin << " current: " << current << endl;
+    //cout << "dmin: " << dmin << " current: " << current << endl;
     return dmin;
 }
 
