@@ -1,3 +1,8 @@
 {
-    "python.pythonPath": "/usr/local/bin/python3.6"
+    "python.pythonPath": "/usr/local/bin/python3.6",
+    "files.associations": {
+        "memory": "cpp",
+        "regex": "cpp",
+        "utility": "cpp"
+    }
 }

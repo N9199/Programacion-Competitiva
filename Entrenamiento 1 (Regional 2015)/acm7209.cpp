@@ -64,7 +64,7 @@ int main(){
             B[j-1][i-1] = b;
             B[i-1][j-1] = b;
         }
-        int iterations = 60;
+        int iterations = 100;
         double right = 0, left = 24*60;
         double leftThird,rightThird,dist1,dist2;
         rep(i,iterations){

@@ -15,8 +15,6 @@ typedef vector<vp > wgraph;
 #define pb push_back
 #define eb emplace_back
 
-#define int long long
-
 int mulmod(uint a, uint b, uint p)
 {
     int x = 0, y = a % p;
@@ -43,27 +41,32 @@ int fastPow(int x, int n, int MOD)
 class seg_tree{
 vi tree, arr;
 int n, p, b;
+vi Bpow;
 
     void build(int node, int left, int right){
         if(left == right){
-            tree[node] = mulmod(arr[left],fastPow(b, n-left-1, p), p);
+            tree[node] = arr[left]%p;
         }else{
             int mid = (right + left)/2;
             build(2*node, left, mid);
             build(2*node+1, mid+1, right);
-            tree[node] = (tree[2*node]+tree[2*node+1])%p;//operation
+            tree[node] = (mulmod(tree[2*node], Bpow[right-mid], p)+tree[2*node+1])%p;//operation
         }
     }
 
     int query(int node, int start, int end, int l, int r){
         if(r < start or l > end)
             return 0; //Neutro
-        if(l <= start and end <= r)
+        if(l <= start and end <= r){
+            //cout<<tree[node]<<endl; 
             return tree[node];
+        }
         int mid = (start + end)/2;
         int p1 = query(2*node, start, mid, l, r);
         int p2 = query(2*node+1, mid+1, end, l, r);
-        return (p1+p2)%p;
+        //cout<<p1<<" "<<p2<<endl;
+        //cout<<Bpow[end-mid]<<endl;
+        return (mulmod(p1, Bpow[end-mid], p) + p2)%p;
     }
 
     void update(int node, int start, int end, int i, int val){
@@ -78,7 +81,8 @@ int n, p, b;
             }else{
                 update(2*node+1, mid+1, end, i, val);
             }
-            tree[node] = (tree[2*node]+tree[2*node+1])%p;//operation
+            //cout<<Bpow[end-mid]<<" "<<mid<<" "<<end<<endl;
+            tree[node] = (mulmod(tree[2*node], Bpow[end-mid], p) + tree[2*node+1])%p;//operation
         }
     }
 
@@ -88,7 +92,13 @@ public:
         b = br;
         arr = A;
         n = A.size();
-        tree.resize(4*n+5);
+        tree.resize(4*n+2);
+        Bpow.resize(n);
+        Bpow[0] = 1;
+        repx(i,1,n)
+            Bpow[i] = (Bpow[i-1]*b)%p;
+
+        cout<<endl;
         build(1, 0, n-1);
     }
 
@@ -103,9 +113,7 @@ public:
     }
 };
 
-#undef int
 int main(){
-    #define int long long
     int b,p,l,n;
     while(cin>>b>>p>>l>>n){
         if(!(b && p && l && n))
@@ -122,6 +130,8 @@ int main(){
                 cout<<t.query(j-1,a-1)<<'\n';
         }
         cout<<"-\n";
+        //rep(i,4*n+2)
+            //cout<<t.query(i,i)<<'\n';
     }
     return 0;
 }
