@@ -32,61 +32,19 @@ struct Point {
 };
 typedef vector<Point > vpoint;
 
-class seg_tree{
-vll tree, arr;
-int n;
 
-    void build(int node, int left, int right){
-        if(left == right){
-            tree[node] = arr[left];
-        }else{
-            int mid = (right + left)/2;
-            build(2*node, left, mid);
-            build(2*node+1, mid+1, right);
-            tree[node] = max(tree[2*node],tree[2*node+1]);//operation
-        }
+struct FenwickTree {
+    vector<ll> ft;
+    FenwickTree(int n) {
+        ft.assign(n+1,0);
     }
-
-    ll query(int node, int start, int end, int l, int r){
-        if(r < start or l > end)
-            return 0; //Neutro
-        if(l <= start and end <= r)
-            return tree[node];
-        int mid = (start + end)/2;
-        int p1 = query(2*node, start, mid, l, r);
-        int p2 = query(2*node+1, mid+1, end, l, r);
-        return max(p1,p2);//operation
+    ll rmq(int b) {
+        ll ans = 0;
+        for (; b; b -= (b & -b)) ans = max(ans, ft[b]);
+        return ans;
     }
-
-    void update(int node, int start, int end, int i, ll val){
-        if(start == end){
-            arr[i] = val;
-            tree[node] = arr[i];
-        }else{
-            int mid = (start + end)/2;
-            if(start <= i and i <= mid){
-                update(2*node, start, mid, i, val);
-            }else{
-                update(2*node+1, mid+1, end, i, val);
-            }
-            tree[node] = max(tree[2*node],tree[2*node+1]);//operation
-        }
-    }
-
-public:
-    seg_tree(vll& A){
-        arr = A;
-        n = A.size();
-        tree.resize(4*n+5);
-        build(1, 0, n-1);
-    }
-
-    ll query(int l, int r){
-        return query(1, 0 ,n-1, l, r);
-    }
-
-    void update(int i, int value){
-        update(1, 0, n-1, i, value);
+    void update(int b, ll new_val) {
+        for(; b < ft.size(); b += (b & -b)) ft[b] = max(ft[b], new_val);
     }
 };
 
@@ -113,29 +71,23 @@ int main(){
     for(auto& q : s)
         compacter[q] = ++j;
 
-    vpoint points(m.size()+1);
-    vll F(m.size()+1,0);
-    points[0] = {-1,-1,0};
+    vpoint points(m.size());
     
-    vll temp(j+1, 0);
-    seg_tree st(temp);
+    FenwickTree ft(j+1);
 
-    j = 1;
+    int i = 0;
     for(auto& q : m){
-        points[j++] = {q.first.first, compacter[q.first.second], q.second};
+        points[i++] = {q.first.first, compacter[q.first.second], q.second};
     }
 
     sort(points.begin(), points.end());
 
-    repx(i,1,F.size()) {
-        F[i] = st.query(1, points[i].y-1) + points[i].p;
-        st.update(points[i].y, F[i]);
-        //cout<<points[i].y<<" A "<<st.query(points[i].y, points[i].y)<<" F: "<<F[i]<<endl;
-    }
+    for(auto& p : points)
+        ft.update(p.y, ft.rmq(p.y-1) + p.p);
     //cout<<"asdf\n";
     //rep(i, temp.size())
         //cout << st.query(i,i) << endl;
 
-    cout<<st.query(1, temp.size())<< endl;
+    cout<<ft.rmq(j)<< endl;
     return 0;
 }
