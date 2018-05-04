@@ -55,7 +55,7 @@ int main(){
     while(cin>>n>>m){
         g = graph(n);
         int i,j,a,b;
-        rep(asdfghjkl,m){
+        rep(ignore_me,m){
             cin>>i>>j>>a>>b;
             g[i-1].pb(j-1);
             g[j-1].pb(i-1);
