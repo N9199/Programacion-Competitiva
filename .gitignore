@@ -33,3 +33,6 @@
 
 \.DS_Store
 \.vscode
+*Pablo.cpp
+*.txt
+output.py
