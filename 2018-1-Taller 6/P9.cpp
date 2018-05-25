@@ -64,7 +64,9 @@ public:
         rks.assign(n, -1);
         dp.assign(n, -1);
         diameter(1);
-        this->d = rks[1];
+        int temp = 0;
+        rep(i, n) temp=max(temp, rks[i]);
+        this->d = temp;
         this->d1 = u;
         this->d2 = find(d1);
     }
