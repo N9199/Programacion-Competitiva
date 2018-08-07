@@ -11,11 +11,16 @@ typedef vector<vi > graph;
 typedef vector<vp > wgraph;   
 
 #define rep(i,n) for(int i=0; i<(int)n;++i)
+
+#define debugx(x) cerr << #x << ": " << x << endl
+
 #define pb push_back
 #define eb emplace_back
 
 int main(){
-    unordered_map<int, int> u;
-    cout<<u[0]<<endl;
+    __int128 a = 1e20;
+
+    printf(a);
+
     return 0;
 }
