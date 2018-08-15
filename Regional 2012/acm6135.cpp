@@ -25,19 +25,21 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v)  cerr<<#v<<":";rep(i,(int)v.size())cerr<<" "<<v[i];cerr<<endl
+#define debugx(x)  //cerr << #x << ": " << x << endl
+#define debugv(v)  //cerr<<#v<<":";rep(i,(int)v.size())cerr<<" "<<v[i];cerr<<endl
 #define debugm(m)  //cerr<<#m<<endl;rep(i,(int)m.size()){cerr<<i<<":";rep(j,(int)m[i].size())cerr<<" "<<m[i][j];cerr<<endl;}
 #define debugmp(m) //cerr<<#m<<endl;rep(i,(int)m.size()){cerr<<i<<":";rep(j,(int)m[i].size())cerr<<" {"<<m[i][j].first<<","<<m[i][j].second<<"}";cerr<<endl;}
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
 double mid;
 
-struct pol{
+struct pol
+{
     vi cof;
     pol(vi cof) : cof(cof) {}
 
-    double operator()(double x){
+    double operator()(double x)
+    {
         double ans = 0;
         double x_i = 1;
         for (int c : cof)
@@ -49,16 +51,17 @@ struct pol{
     }
 };
 
-struct rat{
-    pol p,q;
-    rat(pol p, pol q): p(p), q(q) {}
+struct rat
+{
+    pol p, q;
+    rat(pol p, pol q) : p(p), q(q) {}
 
-    double operator()(double x){
-        double ans = p(x)/q(x);
+    double operator()(double x)
+    {
+        double ans = p(x) / q(x);
         return max(ans, -mid);
     }
 };
-
 
 double simpsons_rule(function<double(double)> f, double a, double b)
 {
@@ -71,7 +74,7 @@ double simpsons_rule(function<double(double)> f, double a, double b)
 double simpsons_rule(function<double(double)> f, double a, double b, int n)
 {
     double ans = 0;
-    double step = 0, h = (b-a)/n;
+    double step = 0, h = (b - a) / n;
     rep(i, n)
     {
         ans += simpsons_rule(f, step, step + h);
@@ -101,7 +104,7 @@ int main(int argc, char const *argv[])
             cin >> l[i];
         }
         pol q(l);
-        rat y1(p,q);
+        rat y1(p, q);
         rep(i, k)
         {
             cin >> l[i];
@@ -112,7 +115,7 @@ int main(int argc, char const *argv[])
             cin >> l[i];
         }
         q.cof = l;
-        rat y2(p,q);
+        rat y2(p, q);
         double start = 0;
         double end = d;
         rep(_, 100)
