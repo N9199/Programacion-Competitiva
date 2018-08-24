@@ -179,7 +179,7 @@ int main()
             else
                 minr = r;
         }
-        cout << (maxr + minr) / 2 << '\n';
+        cout << (maxr + minr) * 0.5 << '\n';
     }
     return 0;
 }
