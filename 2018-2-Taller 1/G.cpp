@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef pair<int, int> par;
-typedef vector<char> vi;
+typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 
@@ -30,8 +30,20 @@ typedef vector<vp> wgraph;
 #define debugmp(m) //cerr<<#m<<endl;rep(i,(int)m.size()){cerr<<i<<":";rep(j,(int)m[i].size())cerr<<" {"<<m[i][j].first<<","<<m[i][j].second<<"}";cerr<<endl;}
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int main(){
-    
+struct hill
+{
+    int h;
+    int l, r;
+    hill(int h, int l, int r) : h(h), l(l), r(r) {}
+
+    par operator^(hill &o)
+    {
+        
+    }
+};
+
+int main()
+{
 
     return 0;
 }
