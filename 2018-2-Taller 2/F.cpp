@@ -6,9 +6,6 @@ typedef long long ll;
 typedef vector<ll> vi;
 typedef vector<vi> graph;
 
-typedef vector<double> vd;
-typedef vector<vd> vvd;
-
 #define rep(i, n) for (size_t i = 0; i < (size_t)n; i++)
 #define repx(i, a, b) for (size_t i = a; i < (size_t)b; i++)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a)
@@ -21,16 +18,27 @@ typedef vector<vd> vvd;
 #define lgg(x) (63 - __buitlin_clzll(x))
 #define gcd __gcd
 
-//ios::sync_with_stdio(0); cin.tie(0);
-//cout.setf(ios::fixed); cout.precision(4);
-
 #define debugx(x) cerr << #x << ": " << x << endl
 #define debugv(v) \
-    // cerr << #v << ":";                         \
+    //cerr << #v << ":";                         \
     rep(i, (int)v.size()) cerr << " " << v[i]; \
     cerr << endl
-#define debugm(m)  //cerr<<#m<<endl;rep(i,(int)m.size()){cerr<<i<<":";rep(j,(int)m[i].size())cerr<<" "<<m[i][j];cerr<<endl;}
-#define debugmp(m) //cerr<<#m<<endl;rep(i,(int)m.size()){cerr<<i<<":";rep(j,(int)m[i].size())cerr<<" {"<<m[i][j].first<<","<<m[i][j].second<<"}";cerr<<endl;}
+#define debugm(m) \
+    //cerr << #m << endl;                                  \
+    rep(i, (int)m.size())                                \
+    {                                                    \
+        cerr << i << ":";                                \
+        rep(j, (int)m[i].size()) cerr << " " << m[i][j]; \
+        cerr << endl;                                    \
+    }
+#define debugmp(m) \
+    //cerr << #m << endl;                                                                         \
+    rep(i, (int)m.size())                                                                       \
+    {                                                                                           \
+        cerr << i << ":";                                                                       \
+        rep(j, (int)m[i].size()) cerr << " {" << m[i][j].first << "," << m[i][j].second << "}"; \
+        cerr << endl;                                                                           \
+    }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
 struct par
@@ -134,19 +142,19 @@ int main()
         rep(i, 40)
         {
             s.reset();
-            double r = (minr + maxr) / 2;
+            double r = (minr + maxr) * 0.5;
             r2 = 4 * r * r;
             bool connected = false;
             rep(i, n)
             {
-                if (dist1[i] >= r)
-                    continue;
+                if (dist1[i] < r)
+                    s.UnionSet(i, n);
+
                 if (dist2[i] < r)
                 {
                     connected = true;
                     goto next;
                 }
-                s.UnionSet(i, n);
             }
 
             rep(i, n)
@@ -162,7 +170,7 @@ int main()
 
             rep(i, n) repx(j, i + 1, n)
             {
-                if (dist_sqr_din[i][j] <= r2)
+                if (dist_sqr_din[i][j] < r2)
                 {
                     s.UnionSet(i, j);
                     if (s.isSameSet(n, n + 1))
