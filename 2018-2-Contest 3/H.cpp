@@ -7,7 +7,6 @@ typedef pair<int, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
-
 typedef vector<vp> wgraph;
 
 #define rep(i, n) for (size_t i = 0; i < (size_t)n; i++)
@@ -25,21 +24,21 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v) \
-    //cerr << #v << ":";                          \
+#define debugx(x)  //cerr << #x << ": " << x << endl
+#define debugv(v)  //\
+    cerr << #v << ":";                          \
     rep(i, (int)v.size()) cerr << ", " << v[i]; \
     cerr << endl
-#define debugm(m) \
-    //cerr << #m << endl;                                  \
+#define debugm(m)  //\
+    cerr << #m << endl;                                  \
     rep(i, (int)m.size())                                \
     {                                                    \
         cerr << i << ":";                                \
         rep(j, (int)m[i].size()) cerr << " " << m[i][j]; \
         cerr << endl;                                    \
     }
-#define debugmp(m) \
-    //cerr << #m << endl;                                                                         \
+#define debugmp(m) //\
+    cerr << #m << endl;                                                                         \
     rep(i, (int)m.size())                                                                       \
     {                                                                                           \
         cerr << i << ":";                                                                       \
@@ -78,12 +77,9 @@ ll fastPow(ll x, ll n, ll MOD)
 
 bool isPrime(ll n)
 {
-    //if(n <= N) return P[n] == n;
     unordered_set<int> p = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31};
     if (n <= 31)
         return p.find(n) != p.end();
-    if (n == 2)
-        return true;
     if (n % 2 == 0 or n <= 1)
         return false;
     vi a = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31};
@@ -96,12 +92,12 @@ bool isPrime(ll n)
         d >>= 1;
     }
 
-    for (int i = 0; i < 7; i++)
+    rep(i, a.size())
     {
         ll fp = fastPow(a[i], d, n);
         bool comp = (fp != 1);
         if (comp)
-            for (int j = 0; j < s; j++)
+            rep(j, s)
             {
                 if (fp == n - 1)
                 {
@@ -119,6 +115,26 @@ bool isPrime(ll n)
 
 unordered_map<int, vi> adjacent_saved;
 
+int p1(int n)
+{
+    return 1 + 2 * (n - 1) + 4 * (n - 1) * (n - 2);
+}
+
+int p2(int n)
+{
+    return 1 + 4 * (n - 1) + 4 * (n - 1) * (n - 2);
+}
+
+int p3(int n)
+{
+    return 1 + 6 * (n - 1) + 4 * (n - 1) * (n - 2);
+}
+
+int p4(int n)
+{
+    return (2 * n - 1) * (2 * n - 1);
+}
+
 vi adjacent(int n)
 {
     if (n == 1)
@@ -131,21 +147,6 @@ vi adjacent(int n)
     temp[0] = n - 1;
     temp[1] = n + 1;
     int k = ceil((sqrt((double)n) + 1) / 2);
-    function<int(int)> p1 = [](int n) {
-        return 1 + 2 * (n - 1) + 4 * (n - 1) * (n - 2);
-    };
-
-    function<int(int)> p2 = [](int n) {
-        return 1 + 4 * (n - 1) + 4 * (n - 1) * (n - 2);
-    };
-
-    function<int(int)> p3 = [](int n) {
-        return 1 + 6 * (n - 1) + 4 * (n - 1) * (n - 2);
-    };
-
-    function<int(int)> p4 = [](int n) {
-        return (2 * n - 1) * (2 * n - 1);
-    };
 
     if (p1(k) == n)
     {
@@ -179,8 +180,8 @@ vi adjacent(int n)
     }
     else if (p2(k) < n and n < p3(k))
     {
-        temp[2] = n + 5 + 8 * k;
-        temp[3] = n - 5 - 8 * (k - 1);
+        temp[2] = n + 5 + 8 * (k - 1);
+        temp[3] = n - 5 - 8 * (k - 2);
     }
     else if (p3(k) < n and n < p4(k))
     {
@@ -189,8 +190,8 @@ vi adjacent(int n)
     }
     else
     {
-        temp[2] = n + 1 + 8 * k;
-        temp[3] = n - 1 - 8 * (k - 1);
+        temp[2] = n + 1 + 8 * (k - 1);
+        temp[3] = n - 1 - 8 * (k - 2);
     }
 
     return adjacent_saved[n] = temp;
@@ -235,6 +236,7 @@ string bfs(int start, int end)
         for (int v : adjacent(u))
         {
             debugx(v);
+            assert(v > 0);
             if (primes.find(v) == primes.end())
             {
                 if (isPrime(v))
