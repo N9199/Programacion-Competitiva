@@ -152,6 +152,8 @@ dmypy.json
 *Pablo.cpp
 *.txt
 output.py
+in
+out
 E
 almost
 test.*
