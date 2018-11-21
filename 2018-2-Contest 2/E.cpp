@@ -66,8 +66,7 @@ struct rat
     }
 };
 
-double
-integrate(function<double(double)> f, double a, double b)
+double integrate(function<double(double)> f, double a, double b)
 {
     double c = (a + b) / 2;
     double h3 = abs(b - a) / 6;

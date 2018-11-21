@@ -90,14 +90,12 @@ class MST
             a.emplace(e.u * n + e.v);
             a.emplace(e.v * n + e.u);
             int u = findSet(e.u), v = findSet(e.v);
+
             if (rank[u] > rank[v])
-            {
                 parent[u] = v;
-            }
             else
-            {
                 parent[v] = u;
-            }
+
             G[u].eb(e.w, v);
             G[v].eb(e.w, u);
             if (rank[u] == rank[v])
@@ -158,8 +156,6 @@ class MST
 
         for (auto e : E)
         {
-            debugx(e.v);
-            debugx(e.u);
             q[e.v * n + e.u] = e.w;
             q[e.u * n + e.v] = e.w;
             addEdge(e);
@@ -209,16 +205,18 @@ int main()
 {
     ios::sync_with_stdio(0);
     cin.tie(0);
+    cout.tie(0);
     int n, r;
     MST g;
+    vector<edge> e;
     while (cin >> n >> r)
     {
-        vector<edge> e;
+        e.resize(r);
         rep(i, r)
         {
             int a, b, c;
-            cin >> a >> b >> c;
-            e.eb(--a, --b, c);
+            cin >> e[i].u >> e[i].v >> e[i].w;
+            e[i].u--, e[i].v--;
         }
         g.reset(n, e);
 
