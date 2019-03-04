@@ -1,6 +1,7 @@
 //Square Subsets 895C
 
 #include <bits/stdc++.h>
+#pragma GCC optimize("Ofast")
 
 using namespace std;
 
@@ -69,17 +70,18 @@ void fill2pow()
 
 int main(int argc, char const *argv[])
 {
+    // ios::sync_with_stdio(0);
+    // cin.tie(0);
     int n;
-    cin >> n;
+    scanf("%d", &n);
     rep(_, n)
     {
         int x;
-        cin >> x;
+        scanf("%d", &x);
         freq[repr[x]]++;
     }
     fill2pow();
-    debugx(pow2[0]);
 
-    cout << add(mult(pow2[freq[1]], dp(2, 0)), MOD - 1) << '\n';
+    printf("%I64d\n", add(mult(pow2[freq[1]], dp(2, 0)), MOD - 1));
     return 0;
 }
