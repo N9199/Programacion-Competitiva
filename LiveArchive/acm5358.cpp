@@ -14,50 +14,57 @@ typedef vector<int> vi;
         cerr << e << " "; \
     cerr << endl;
 
+#define log(x) (32 - __builtin_clz(x))
+
 const int maxn = 8;
 
-vector<vi> solutions;
+vi solutions;
 
-bool check(vi &sols, int c, int f)
+inline int pos(int num, int i, int size)
 {
-    //Check columna
-    if (sols[c] != -1)
+    return (num >> ((7 - i) * size)) & ((1 << size) - 1);
+}
+
+bool check(int sols, int c, int f, int marked)
+{
+    //Check vertical
+    if (pos(marked, c, 1))
         return false;
 
-    //Check vertical queue
-    for (auto e : sols)
+    //Check horizontal and diagonal
+    rep(i, 8)
     {
-        if (e == f)
+        //Horizontal
+        if (pos(sols, i, 3) == f)
+            return false;
+
+        //Diagonal
+        if (pos(marked, c, 1) && abs(pos(sols, i, 3) - f) == abs(i - c))
             return false;
     }
-
-    //Check diagonal
-    rep(i, sols.size())
+    if (c > 6)
     {
-        if (sols[i] != -1 && abs(sols[i] - f) == abs(i - c))
-            return false;
+        debugx(c);
+        debugx(f);
     }
     return true;
 }
 
-void solver(vi sols, int c, int f)
+void solver(int sols, int c, int marked)
 {
-    if (f != -1)
-        sols[c] = f;
-
-    if (c == maxn - 1 or (c == maxn - 2 and sols[c + 1] != -1))
+    if (marked == (1 << 8) - 1 or c == 8)
     {
         solutions.emplace_back(sols);
         return;
     }
 
-    if (c + 1 < maxn and sols[c + 1] != -1)
-        c++;
-
-    rep(i, maxn)
+    rep(i, 8)
     {
-        if (check(sols, c + 1, i))
-            solver(sols, c + 1, i);
+        if (pos(marked, i, 1))
+            continue;
+
+        if (check(sols, c + 1, i, marked))
+            solver(sols + (i << (3 * (6 - c))), c + 1, marked + (1 << (c + 1)));
     }
 }
 
@@ -65,28 +72,19 @@ int main(int argc, char const *argv[])
 {
     int n;
     cin >> n;
-    rep(_, n)
+    rep(k, n)
     {
         int c, f;
         cin >> f >> c;
         f--, c--;
-        vi sols(maxn);
-        rep(i, maxn)
-            sols[i] = (i == c) ? f : -1;
+        int sols = f << (3 * c);
+        int mark = 1 << c;
 
-        solver(sols, -1, -1);
+        solver(sols, -1, mark);
 
-        sort(solutions.begin(), solutions.end(),
-             [](const vi &a, const vi &b) -> bool {
-                 rep(i, maxn)
-                 {
-                     if (a[i] < b[i])
-                         return true;
-                     if (a[i] > b[i])
-                         return false;
-                 }
-                 return false;
-             });
+        sort(solutions.begin(), solutions.end());
+        debugv(solutions);
+
         cout << "SOLN       COLUMN\n";
         cout << " #      1 2 3 4 5 6 7 8\n\n";
         rep(i, solutions.size())
@@ -94,16 +92,16 @@ int main(int argc, char const *argv[])
             if (i + 1 < 10)
                 cout << " ";
             cout << i + 1 << "      ";
-            rep(j, solutions[i].size())
+            rep(j, 8)
             {
-                cout << solutions[i][j] + 1;
-                if (j < solutions[i].size() - 1)
+                cout << pos(solutions[i], j, 3) + 1;
+                if (j < 7)
                     cout << " ";
             }
             cout << "\n";
         }
         solutions.clear();
-        if (_ < n - 1)
+        if (k < n - 1)
             cout << "\n";
     }
     return 0;
