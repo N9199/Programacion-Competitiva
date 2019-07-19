@@ -147,9 +147,10 @@ dmypy.json
 .pyre/
 
 
-\.DS_Store
-\.vscode
+.DS_Store
+.vscode
 *Pablo.cpp
+*test.cpp
 *.txt
 output.py
 in
@@ -158,3 +159,9 @@ E
 almost
 test.*
 test
+t
+original*
+tester*
+input/
+output/
+diff/

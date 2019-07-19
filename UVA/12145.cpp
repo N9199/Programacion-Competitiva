@@ -24,8 +24,8 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x) //cerr << #x << ": " << x << endl
-#define debugv(v) //        \
+#define debugx(x)  //cerr << #x << ": " << x << endl
+#define debugv(v)  //       \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
@@ -49,64 +49,9 @@ typedef vector<vp> wgraph;
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
 template <class T>
-class Frac
-{
-private:
-    T p, q;
-
-public:
-    Frac(T a, T b) : p(a), q(b) {}
-
-    Frac<T> operator+(const Frac<T> &o)
-    {
-        T a = p * o.q + o.p * q;
-        T b = q * o.q;
-        if (typeid(T) == typeid(ll) or typeid(T) == typeid(int))
-        {
-            T g = __gcd(a, b);
-            a = a / g;
-            b = b / g;
-        }
-        return Frac(a, b);
-    }
-    Frac<T> operator*(const Frac<T> &o)
-    {
-        T a = p * o.p;
-        T b = q * o.q;
-        if (typeid(T) == typeid(ll) or typeid(T) == typeid(int))
-        {
-            T g = __gcd(a, b);
-            a = a / g;
-            b = b / g;
-        }
-        return Frac(a, b);
-    }
-    Frac<T> operator*(const T &o)
-    {
-        return (*this) * Frac(o, 1);
-    }
-    Frac<T> operator-(const Frac<T> &o)
-    {
-        return (*this) + (-1 * o);
-    }
-    Frac<T> operator/(const Frac<T> &o)
-    {
-        T a = p * o.q;
-        T b = q * o.p;
-        if (typeid(T) == typeid(ll) or typeid(T) == typeid(int))
-        {
-            T g = __gcd(a, b);
-            a = a / g;
-            b = b / g;
-        }
-        return Frac(a, b);
-    }
-};
-
-template <class T>
 class Pol
 {
-private:
+public:
     vector<T> cofs;
     int n;
     T m_cof;
@@ -115,9 +60,25 @@ public:
     Pol(vector<T> cofs) : cofs(cofs)
     {
         m_cof = cofs[0];
-        for (auto c : cofs)
-            m_cof = max(m_cof, abs(c));
-        this->n = cofs.size() - 1;
+        int temp = 0;
+        bool flag = true;
+        invrep(i, 0, cofs.size())
+        {
+            m_cof = max(m_cof, abs(cofs[i]));
+            if (cofs[i] == T(0) and flag)
+                temp++;
+            else
+                flag = false;
+        }
+        temp = cofs.size() - temp;
+        if (temp > 0)
+            this->cofs.erase(this->cofs.begin() + temp, this->cofs.end());
+        else
+            this->cofs.clear();
+        if (this->cofs.size() == 0)
+            this->cofs.eb(0);
+        this->n = this->cofs.size() - 1;
+        assert(n == this->cofs.size() - 1);
     }
     Pol()
     {
@@ -135,7 +96,7 @@ public:
     {
         if (n != o.n)
             return false;
-        rep(i, n + 1)
+        rep(i, cofs.size())
         {
             if (cofs[i] != o.cofs[i])
                 return false;
@@ -162,30 +123,17 @@ public:
                 n_cofs[i] += cofs[i];
             }
         }
-        return Pol(n_cofs);
+        return Pol<T>(n_cofs);
     }
 
-    Pol<T> operator-(const Pol<T> &o)
+    Pol<T> operator*(const T &o)
     {
-        vector<T> n_cofs;
-        if (n > o.n)
+        vector<T> n_cofs = cofs;
+        for (auto &cof : n_cofs)
         {
-            n_cofs = cofs;
-            rep(i, o.n + 1)
-            {
-                n_cofs[i] -= o.cofs[i];
-            }
+            cof *= o;
         }
-        else
-        {
-            n_cofs = o.cofs;
-            rep(i, n + 1)
-            {
-                n_cofs[i] *= -1;
-                n_cofs[i] += cofs[i];
-            }
-        }
-        return Pol(n_cofs);
+        return Pol<T>(n_cofs);
     }
 
     Pol<T> operator*(const Pol<T> &o) //Use Fast Fourier Transform when we implement it
@@ -198,29 +146,32 @@ public:
                 n_cofs[i + j] += cofs[i] * o.cofs[j];
             }
         }
-        return Pol(n_cofs);
+        return Pol<T>(n_cofs);
     }
 
-    Pol<T> operator*(const T &o)
+    Pol<T> operator-(const Pol<T> &o)
     {
-        vector<T> n_cofs = cofs;
-        for (auto &cof : n_cofs)
-        {
-            cof *= o;
-        }
-        return Pol(n_cofs);
+        return (*this) + Pol<T>({-1}) * o;
     }
 
     T operator()(T x)
     {
-        T ans = T(0);
-        T temp = T(1);
+        T ans1 = T(0);
+        T ans2 = T(0);
+        T temp1 = T(1);
+        T temp2 = T(1);
         for (auto cof : cofs)
         {
-            ans += cof * temp;
-            temp *= x;
+            ans1 += cof * temp1;
+            ans2 += cof * temp2;
+            ans1 %= (ll)1e9 + 7;
+            ans2 %= (ll)1e9 + 9;
+            temp1 *= x;
+            temp2 *= x;
+            temp1 %= (ll)1e9 + 7;
+            temp2 %= (ll)1e9 + 9;
         }
-        return ans;
+        return max(ans1, ans2);
     }
 
     Pol<T> integrate()
@@ -239,61 +190,78 @@ public:
         return temp(b) - temp(a);
     }
 
+    void free_gcd()
+    {
+        T g = 0;
+        for (auto c : cofs)
+        {
+            g = __gcd(g, c);
+        }
+        for (auto &c : cofs)
+        {
+            c /= g;
+        }
+    }
+
     vector<T> roots()
     {
+        free_gcd();
         vector<T> roots;
-        if (typeid(T) == typeid(ll) or typeid(T) == typeid(int))
+        /* if (typeid(T) == typeid(ll) or typeid(T) == typeid(int))
+        { */
+        //Do rational roots theorem
+        T a0 = cofs[0];
+        //If the last coefficient is zero, divide by x till it's not zero
+        if (a0 == T(0))
         {
-            //Check simple case of ax+b
-            if (n == 1)
+            if (n == 0)
+                return {T(0)};
+            else
             {
-                if (cofs[0] % cofs[1] == 0)
-                    return {-cofs[0] / cofs[1]};
-            }
-            //Do rational roots theorem
-            T a0 = cofs[0];
-            //If the last coefficient is zero, divide by x till it's not zero
-            if (a0 == T(0))
-            {
-                if (n == 0)
-                    return {T(0)};
-                else
+                auto it = cofs.begin();
+                rep(i, n)
                 {
-                    auto it = cofs.begin();
-                    rep(i, n)
-                    {
-                        if (cofs[i] == T(0))
-                            it++;
-                    }
-                    roots.eb(0);
-                    auto temp = Pol<T>(vector<T>(it, cofs.end())).roots();
-                    roots.insert(
-                        roots.begin(), temp.begin(), temp.end());
-                    return roots;
+                    if (cofs[i] == T(0))
+                        it++;
                 }
+                roots.eb(0);
+                auto temp = Pol<T>(vector<T>(it, cofs.end())).roots();
+                roots.insert(
+                    roots.begin(), temp.begin(), temp.end());
+                return roots;
             }
-            //T an = *(cofs.rbegin());
-            //Check divisors
-            set<T> divisors;
-            repx(i, 2, min(T(floor(sqrt(abs(a0))) + 1), 1 + m_cof))
-            {
-                if (a0 % T(i) == 0)
-                {
-                    divisors.emplace(abs(T(i)));
-                    divisors.emplace(abs(a0 / T(i)));
-                }
-            }
-            debugv(divisors);
-            //Evaluate divisors
-            for (auto d : divisors)
-            {
-                if ((*this)(d) == T(0) or (*this)(-d) == T(0))
-                {
-                    roots.eb(abs(d));
-                }
-            }
-            debugv(roots);
         }
+        //Check simple case of ax+b
+        if (n == 1)
+        {
+            debugx(cofs[0] % cofs[1]);
+            debugx(abs(cofs[0] / cofs[1]));
+            if (cofs[0] % cofs[1] == 0)
+                return {abs(cofs[0] / cofs[1])};
+            return {};
+        }
+        //T an = *(cofs.rbegin());
+        //Check divisors
+        set<T> divisors;
+        repx(i, 1, min(T(floor(sqrt(abs(a0))) + 1), 1 + m_cof))
+        {
+            if (a0 % T(i) == 0)
+            {
+                divisors.emplace(abs(T(i)));
+                divisors.emplace(abs(a0 / T(i)));
+            }
+        }
+        debugv(divisors);
+        //Evaluate divisors
+        for (auto d : divisors)
+        {
+            if ((*this)(d) == T(0))
+            {
+                roots.eb(abs(d));
+            }
+        }
+        debugv(roots);
+        //}
         return roots;
     }
 
@@ -302,6 +270,9 @@ public:
 
 ostream &operator<<(ostream &strm, const Pol<ll> &a)
 {
+    debugx(a.n);
+    debugv(a.cofs);
+    assert(a.n == a.cofs.size() - 1);
     bool flag = false;
     if (a.n == 0)
     {
@@ -379,6 +350,7 @@ Pol<T> inp(string s)
         cofs.eb((*it) - '0');
         num = max(num, ll((*it) - '0'));
     }
+    debugv(cofs);
     return Pol<T>(cofs);
 }
 
@@ -394,6 +366,8 @@ int main(int argc, char const *argv[])
             return 0;
         //Parse input
         auto p = inp<ll>(s);
+        debugv(p.cofs);
+        debugx(p.n);
         debugx(p);
         //Check if it's the zero polynomial
         if (p == Pol<ll>())

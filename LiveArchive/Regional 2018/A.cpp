@@ -13,7 +13,7 @@ typedef vector<vll> vvll;
 
 #define rep(i, n) for (size_t i = 0; i < (size_t)n; i++)
 #define repx(i, a, b) for (int i = a; i < (int)b; i++)
-#define invrep(i, a, b) for (int i = b; i-- > (int)a;)
+#define invrep(i, a, b) for (int∑ i = b; i-- > (int)a;)
 
 #define eb emplace_back
 
