@@ -32,7 +32,7 @@ typedef vector<vp> wgraph;
     for (auto e : v)      \
         cerr << " " << e; \
     cerr << endl
-#define debugm(m)  \
+#define debugm(m)                                        \
     cerr << #m << endl;                                  \
     rep(i, (int)m.size())                                \
     {                                                    \
@@ -63,9 +63,9 @@ int f(int i, int length)
         return memo[i][length];
 
     int result = 0;
-    rep(j, n)
+    rep(j, 2 * n)
     {
-        if (heights[i] = widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0)
+        if (heights[i] = widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
         {
             result += f(j, length - widths[j]);
             result %= MOD;
@@ -89,9 +89,8 @@ int main()
             widths[n + i] = heights[i];
         }
     }
-    n *= 2;
     int result = 0;
-    rep(i, n)
+    rep(i, 2 * n)
     {
         if (heights[i] >= 0)
         {
