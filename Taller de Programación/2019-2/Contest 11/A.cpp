@@ -17,6 +17,7 @@ typedef vector<vll> vvll;
 #define repx(i, a, b) for (int i = a; i < (int)b; i++)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a;)
 
+#define umap unordered_map
 #define eb emplace_back
 
 #define debugx(x) //cerr << #x << ": " << x << endl
@@ -34,12 +35,36 @@ typedef vector<vll> vvll;
         cerr << "\n";         \
     }                         \
     cerr << endl
+#define debugmp(m)               \
+    cerr << #m << ":\n";         \
+    for (auto &v : m)            \
+    {                            \
+        cerr << v.first << ": "; \
+        for (auto e : v.second)  \
+            cerr << e << " ";    \
+        cerr << "\n";            \
+    }                            \
+    cerr << endl;
 
 template <typename _Ty1, typename _Ty2>
 std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
     _os << '(' << _p.first << ',' << _p.second << ')';
     return _os;
+}
+
+vi sieve(int n)
+{
+    vi primes;
+
+    vector<bool> is_prime(n + 1, true);
+    int limit = (int)floor(sqrt(n));
+    repx(i, 2, limit + 1) if (is_prime[i]) for (int j = i * i; j <= n; j += i)
+        is_prime[j] = false;
+
+    repx(i, 2, n + 1) if (is_prime[i]) primes.eb(i);
+
+    return primes;
 }
 
 ll inline mod(ll x, ll m) { return ((x %= m) < 0) ? x + m : x; }
@@ -98,23 +123,6 @@ ll gcdext(ll a, ll b, ll &x, ll &y)
     // assert (g == __gcd(abs(a),abs(b)));
     return g;
 }
-
-// ==============================================
-// CRT for a system of 2 modular linear equations
-// ==============================================
-// We want to find X such that:
-//   1) x = r1 (mod m1)
-//   2) x = r2 (mod m2)
-// The solution is given by:
-//    sol = r1 + m1 * (r2-r1)/g * x' (mod LCM(m1,m2))
-// where x' comes from
-//   m1 * x' + m2 * y' = g = GCD(m1,m2)
-//   where x' and y' are the values found by extended euclidean algorithm (gcdext)
-// Useful references:
-//   https://codeforces.com/blog/entry/61290
-//   https://forthright48.com/chinese-remainder-theorem-part-1-coprime-moduli
-//   https://forthright48.com/chinese-remainder-theorem-part-2-non-coprime-moduli
-// ** Note: this solution works if lcm(m1,m2) fits in a long long (64 bits)
 pair<ll, ll> CRT(ll r1, ll m1, ll r2, ll m2)
 {
     ll g, x, y;
@@ -131,138 +139,143 @@ pair<ll, ll> CRT(ll r1, ll m1, ll r2, ll m2)
     return {sol, lcm}; // solution + lcm(m1,m2)
 }
 
-vii MOD = {{3, 3}, {11, 1}, {13, 1}, {37, 1}}; //142857 = 3^3*11*13*37
-/* Precomputed Factorials and their inverse, in case of prime powers, it's the factorial without factors divisible by the prime */
-vector<vector<ll>> FMOD(4);
-vector<vector<ll>> invFMOD(4);
+ll num = 142857;
+umap<ll, int> MOD;            //MOD[P]=V_p(mod)
+umap<ll, vector<ll>> FMOD;    //n! mod p if MOD[p]=1 else the product of all i mod P^MOD[P], where 1<=i<=n and (i,p)=1
+umap<ll, vector<ll>> invFMOD; //the inverse of FMOD[n] in the corresponding MOD
 
-ll lucas(ll n, ll r, ll m)
+void preCompute()
 {
-    if (r > n)
+    // Factor mod->MOD
+    vi primes = sieve(num);
+    ll m = num;
+    for (auto p : primes)
+    {
+        if (p * p > m)
+            break;
+        while (m % p == 0)
+        {
+            MOD[p]++;
+            if ((m /= p) == 1)
+                goto next;
+        }
+    }
+    if (m > 1)
+        MOD[m] = 1;
+next:
+    // Compute FMOD and invFMOD
+    for (auto p : MOD)
+    {
+        int m = pow(p.first, p.second); //p^V_p(n)
+        FMOD[p.first].assign(m, 1);
+        invFMOD[p.first].assign(m, 1);
+        repx(i, 2, FMOD[p.first].size())
+        {
+            if (i % p.first == 0 and p.second > 1)
+                FMOD[p.first][i] = FMOD[p.first][i - 1];
+            else
+                FMOD[p.first][i] = mul(FMOD[p.first][i - 1], i, FMOD[p.first].size());
+
+            //Compute using Euler's theorem i.e. a^phi(m)=1 mod m with (a.m)=1
+            invFMOD[p.first][i] = fastPow(FMOD[p.first][i], m / p.first * (p.first - 1) - 1, m);
+        }
+    }
+}
+
+// Compute nCr using Granville's theorem (prime powers)
+// Auxiliary functions
+
+// V_p(n!) using Legendre's theorem
+int V(ll n, int p)
+{
+    int e = 0;
+    while ((n /= p) > 0)
+        e += n;
+    return e;
+}
+
+//
+ll f(ll n, ll p)
+{
+    ll m = pow(p, MOD[p]);
+    int e = n / m;
+    return mul(fastPow(FMOD[p][m - 1], e, m), FMOD[p][n % m], m);
+}
+ll F(ll n, ll p)
+{
+    ll m = pow(p, MOD[p]);
+    ll ans = 1;
+    ll temp = 1;
+    while (temp <= n)
+    {
+        ans = mul(ans, f(n / temp, p), m);
+        temp *= p;
+    }
+    return ans;
+}
+// Granville theorem
+ll granville(ll n, ll r, int p)
+{
+    int e = V(n, p) - V(n - r, p) - V(r, p);
+    ll m = pow(p, MOD[p]);
+    if (e >= MOD[p])
+        return 0;
+    ll ans = fastPow(p, e, p);
+    ans = mul(ans, F(n, p), m);
+    ans = mul(ans, fastPow(F(r, p), pow(p, MOD[p] - 1) * (p - 1) - 1, m), m);
+    ans = mul(ans, fastPow(F(n - r, p), pow(p, MOD[p] - 1) * (p - 1) - 1, m), m);
+    return ans;
+}
+
+// Compute nCr using Lucas theorem (primes)
+ll lucas(ll n, ll r, int p)
+{
+    // Trivial cases
+    if (r > n or r < 0)
         return 0;
     if (r == 0 or n == r)
         return 1;
     if (r == 1 or r == n - 1)
-        return n % MOD[m].first;
-    if (n < MOD[m].first and r < MOD[m].first)
+        return n % p;
+    // Base case
+    if (n < p and r < p)
     {
-        ll ans = mul(FMOD[m][n], invFMOD[m][r], MOD[m].first);
-        ans = mul(ans, invFMOD[m][n - r], MOD[m].first);
+        ll ans = mul(invFMOD[p][r], invFMOD[p][n - r], p); // 1/(r!(n-r)!) mod p
+        ans = mul(ans, FMOD[p][n], p);                     // n!/(r!(n-r!)) mod p
         return ans;
     }
-    ll ans = lucas(n / MOD[m].first, r / MOD[m].first, m);
-    ans = mul(ans, lucas(n % MOD[m].first, r % MOD[m].first, m), MOD[m].first);
+    ll ans = lucas(n / p, r / p, p);           //Recursion
+    ans = mul(ans, lucas(n % p, r % p, p), p); //False recursion
     return ans;
 }
 
-int E(ll n, ll p)
-{
-    int ans = 0;
-    ll a = p;
-    while (n >= a)
-    {
-        ans += (n / a);
-        a *= p;
-    }
-    return ans;
-}
-
-ll f(ll n, int m)
-{
-    ll p = pow(MOD[m].first, MOD[m].second);
-    int e = n / p;
-    return mul(fastPow(FMOD[m][p - 1], e, p), FMOD[m][n % p], p);
-}
-
-ll F(ll n, int m)
-{
-    ll p = pow(MOD[m].first, MOD[m].second);
-    ll temp = 1;
-    ll ans = 1;
-    while (temp <= n)
-    {
-        ans = mul(ans, f(n / temp, m), p);
-        temp *= MOD[m].first;
-    }
-    return ans;
-}
-
-ll granville(ll n, ll r, int m)
-{
-    int e = E(n, MOD[m].first) - E(n - r, MOD[m].first) - E(r, MOD[m].first);
-    ll p = pow(MOD[m].first, MOD[m].second);
-    if (e >= MOD[m].second)
-        return 0;
-    ll ans = fastPow(MOD[m].first, e, p);
-    ans = mul(ans, F(n, m), p);
-    ans = mul(ans, fastPow(F(r, m), pow(MOD[m].first, MOD[m].second - 1) * (MOD[m].first - 1) - 1, p), p);
-    ans = mul(ans, fastPow(F(n - r, m), pow(MOD[m].first, MOD[m].second - 1) * (MOD[m].first - 1) - 1, p), p);
-    return ans;
-}
+// Given the prime decomposition of mod;
 ll nCr(ll n, ll r)
 {
-    if (n == r or r == 0)
+    // Trivial cases
+    if (n < r or r < 0)
+        return 0;
+    if (r == 0 or r == n)
         return 1;
     if (r == 1 or r == n - 1)
-        return n % 142857;
-    //Calculate nCr Mod 27,11,13,37 and recombine.2
-    ll ans;
+        return (n % num);
+    // Non-trivial cases
+    ll ans = 0;
     ll mod = 1;
-    //Set first value
-    if (MOD[0].second == 1)
-        ans = lucas(n, r, 0);
-    else
+    for (auto p : MOD)
     {
-        ans = granville(n, r, 0);
-    }
-    mod *= (pow(MOD[0].first, MOD[0].second));
-    //Combine all
-    repx(m, 1, MOD.size())
-    {
-        if (MOD[m].second == 1)
-            ans = CRT(ans, mod, lucas(n, r, m), MOD[m].first).first;
+        ll temp = pow(p.first, p.second);
+        if (p.second > 1)
+        {
+            ans = CRT(ans, mod, granville(n, r, p.first), temp).first;
+        }
         else
         {
-            ans = CRT(ans, mod, granville(n, r, m), pow(MOD[m].first,MOD[m].second).first;
+            ans = CRT(ans, mod, lucas(n, r, p.first), temp).first;
         }
-        mod *= (pow(MOD[m].first, MOD[m].second));
+        mod *= temp;
     }
     return ans;
-}
-
-void preCompute()
-{
-    rep(i, MOD.size())
-    {
-        if (MOD[i].second > 1)
-        {
-            FMOD[i].assign(pow(MOD[i].first, MOD[i].second), 1);
-            repx(j, 2, FMOD[i].size())
-            {
-                if (j % MOD[i].first == 0)
-                {
-                    FMOD[i][j] = FMOD[i][j - 1];
-                }
-                else
-                {
-                    FMOD[i][j] = mul(FMOD[i][j - 1], j, FMOD[i].size());
-                }
-            }
-        }
-        else
-        {
-            FMOD[i].assign(MOD[i].first, 1);
-            invFMOD[i].assign(MOD[i].first, 1);
-
-            repx(j, 2, MOD[i].first)
-            {
-                FMOD[i][j] = mul(FMOD[i][j - 1], j, MOD[i].first);
-                ll temp;
-                gcdext(FMOD[i][j], MOD[i].first, invFMOD[i][j], temp);
-                invFMOD[i][j] = add(invFMOD[i][j], MOD[i].first, MOD[i].first);
-            }
-        }
-    }
 }
 
 int main()
@@ -271,6 +284,7 @@ int main()
     cin.tie(0);
     cout.tie(0);
     preCompute();
+
     int t;
     cin >> t;
     rep(_, t)
