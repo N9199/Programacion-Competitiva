@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,66 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+class FenwickTree
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
+    vector<ll> FT;
 
-    int result = 0;
-    rep(j, 2 * n)
+public:
+    FenwickTree(int N)
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
+        FT.assign(N + 1, 0);
     }
-    debugm(memo);
-    return memo[i][length] = result;
-}
+
+    ll query(int i)
+    {
+        ll ans = 0;
+        for (; i; i -= i & (-i))
+            ans += FT[i];
+        return ans;
+    }
+
+    int query(int i, int j)
+    {
+        return query(j) - query(i - 1);
+    }
+
+    void update(int i, int v)
+    {
+        int s = query(i, i);
+        for (; i < FT.size(); i += i & (-i))
+            FT[i] += v - s;
+    }
+
+    //Queries puntuales, Updates por rango
+    void update(int i, int j, int v)
+    {
+        update(i, v);
+        update(j + 1, -v);
+    }
+};
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    int t;
+    cin >> t;
+    rep(_, t)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        int n, u;
+        cin >> n >> u;
+        FenwickTree FT(n + 1);
+        rep(a, u)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            int l, r, val;
+            cin >> l >> r >> val;
+            FT.update(l + 1, r + 1, val);
+        }
+        int q;
+        cin >> q;
+        rep(a, q)
+        {
+            int i;
+            cin >> i;
+            cout << FT.query(i + 1) << '\n';
         }
     }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    cout << result << '\n';
 }

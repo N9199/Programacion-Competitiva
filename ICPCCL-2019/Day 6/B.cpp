@@ -50,56 +50,51 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
+    int n, p;
+    cin >> n >> p;
+    vi parent(n, -1);
+    vi son(n, -1);
+    vi diam(n, -1);
+    rep(i, p)
+    {
+        int a, b, d;
+        cin >> a >> b >> d;
+        a--;
+        b--;
+        parent[b] = a;
+        son[a] = b;
+        diam[a] = d;
+    }
+    string sol;
+    int t;
     rep(i, n)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        if (son[i] != -1 and parent[i] == -1)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            t++;
+            int j = son[i];
+            sol += to_string(i + 1) + " ";
+            int localdiam = diam[i];
+            while (son[j] != -1)
+            {
+                localdiam = min(localdiam, diam[j]);
+                j = son[j];
+            }
+            sol += to_string(j + 1) + " " + to_string(localdiam) + "\n";
         }
     }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    cout << result << '\n';
+    sol = sol.substr(0, sol.size() - 1);
+    cout << t;
+    if (sol != "")
+        cout << "\n"
+             << sol;
 }

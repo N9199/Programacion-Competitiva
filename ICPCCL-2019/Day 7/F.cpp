@@ -27,7 +27,7 @@ typedef vector<vp> wgraph;
 //cout.setf(ios::fixed); cout.precision(4);
 
 #define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v)         \
+#define debugv(v) //         \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
@@ -50,56 +50,47 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    string s1, s2;
+    cin >> s1 >> s2;
+    vector<vector<int>> nextc(26, vi(s1.size(), -1));
+    for (int i = 0; i < s1.size(); ++i)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        int c = s1[i] - 'a';
+        for (int k = i; k >= 0 and nextc[c][k] == -1; k--)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            nextc[c][k] = i;
         }
     }
-    int result = 0;
-    rep(i, 2 * n)
+    int total = 1;
+    int nextpos = 0;
+    rep(i, s2.size())
     {
-        if (heights[i] >= 0)
+        int c = s2[i] - 'a';
+        nextpos = nextc[c][nextpos] + 1;
+        if (nextpos == 0)
         {
-            result += f(i, l - widths[i]);
-            result %= MOD;
+            total++;
+            nextpos = nextc[c][0] + 1;
+            if (nextpos == 0)
+            {
+                cout << "-1\n";
+                return 0;
+            }
+        }
+        if (nextpos == s1.size() and i < s2.size()-1)
+        {
+            total++;
+            nextpos = 0;
         }
     }
-    debugm(memo);
-    cout << result << '\n';
+    cout << total << '\n';
 }

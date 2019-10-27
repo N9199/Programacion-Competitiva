@@ -26,13 +26,13 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v)         \
+#define debugx(x) //cerr << #x << ": " << x << endl
+#define debugv(v)   //      \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
     cerr << endl
-#define debugm(m)                                        \
+#define debugm(m)      //                                  \
     cerr << #m << endl;                                  \
     rep(i, (int)m.size())                                \
     {                                                    \
@@ -40,7 +40,7 @@ typedef vector<vp> wgraph;
         rep(j, (int)m[i].size()) cerr << " " << m[i][j]; \
         cerr << endl;                                    \
     }
-#define debugmp(m) //\
+#define debugmp(m)  //                                                                            \
     cerr << #m << endl;                                                                         \
     rep(i, (int)m.size())                                                                       \
     {                                                                                           \
@@ -50,56 +50,56 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+int n, m, s, t;
+//g has vectors of pairs of the form (w, index)
+int dijsktra(wgraph &g, int start, int end)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
+    int n = g.size();
+    vi cost(n, 1e9); //~INT_MAX/2
+    priority_queue<par, vp, greater<par>> q;
 
-    int result = 0;
-    rep(j, 2 * n)
+    q.emplace(0, start);
+    cost[start] = 0;
+    while (not q.empty())
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+        int u = q.top().second, w = q.top().first;
+        q.pop();
+
+        // we skip all nodes in the q that we have discovered before at a lower cost
+        if (cost[u] < w)
+            continue;
+
+        for (auto v : g[u])
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            if (cost[v.second] > v.first + w)
+            {
+                cost[v.second] = v.first + w;
+                q.emplace(cost[v.second], v.second);
+            }
         }
     }
-    debugm(memo);
-    return memo[i][length] = result;
+    debugv(cost);
+    return cost[end];
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    cin >> n >> m;
+    wgraph g(3 * n);
+    rep(i, m)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        int u, v;
+        cin >> u >> v;
+        u--;
+        v--;
+        g[u].eb(1,n + v);
+        g[n + u].eb(1,2 * n + v);
+        g[2 * n + u].eb(1,v);
     }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    cout << result << '\n';
+    debugmp(g);
+    cin >> s >> t;
+    int res = dijsktra(g, s - 1, t - 1);
+    if(res==1e9)
+        cout << "-1\n";
+    else cout << res / 3 << '\n';
 }

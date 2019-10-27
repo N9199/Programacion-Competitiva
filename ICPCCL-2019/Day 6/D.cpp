@@ -50,56 +50,67 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
+}
 
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+vi visited;
+void dfs1(graph &g, int u)
+{
+    visited[u] = 0;
+    for (auto v : g[u])
+        if (visited[v] == -1)
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            dfs1(g, v);
         }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+}
+
+void dfs2(graph &g, int u, int c)
+{
+    visited[u] = c;
+    for (auto v : g[u])
+        if (visited[v] == -1 or (visited[v] != 0 and visited[v] < c))
+        {
+            dfs2(g, v, c);
+        }
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
+    int n, m, s;
+    cin >> n >> m >> s;
+    s--;
+    graph g(n);
+    visited.assign(n, -1);
+    rep(_, m)
+    {
+        int u, v;
+        cin >> u >> v;
+        u--, v--;
+        g[u].eb(v);
+    }
+    dfs1(g, s);
 
     rep(i, n)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        if(i == s)
+            continue;
+        if (visited[i] == -1)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            dfs2(g, i, i);
         }
     }
-    int result = 0;
-    rep(i, 2 * n)
+    debugm(g);
+    debugv(visited);
+    set<int> diff;
+    for (auto v : visited)
     {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
+        diff.emplace(v);
     }
-    debugm(memo);
-    cout << result << '\n';
+    debugv(diff);
+
+    cout << diff.size() - 1;
 }

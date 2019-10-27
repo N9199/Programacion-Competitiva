@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,61 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+int bfs(graph &g, int start)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
+    int n = g.size();
+    vi visited(n, 1);
+    queue<int> q;
 
-    int result = 0;
-    rep(j, 2 * n)
+    q.emplace(start);
+    visited[start] = 0;
+    while (not q.empty())
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+        int u = q.front();
+        q.pop();
+
+        for (int v : g[u])
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            if (visited[v])
+            {
+                q.emplace(v);
+                visited[v] = 0;
+            }
         }
     }
-    debugm(memo);
-    return memo[i][length] = result;
+    rep(i, n)
+    {
+        if (visited[i])
+            return false;
+    }
+    return true;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    int n, m;
+    cin >> n >> m;
+    if (m != n - 1)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        cout << "no\n";
+        return 0;
     }
-    int result = 0;
-    rep(i, 2 * n)
+    graph g(n);
+    int a, b;
+    rep(i, m)
     {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
+        cin >> a >> b;
+        a--;
+        b--;
+        g[a].eb(b);
+        g[b].eb(a);
     }
-    debugm(memo);
-    cout << result << '\n';
+    if (bfs(g, 0))
+    {
+        cout << "yes\n";
+    }else
+    {
+        cout << "no\n";
+    }
 }
+

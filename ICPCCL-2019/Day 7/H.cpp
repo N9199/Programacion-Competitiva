@@ -4,7 +4,7 @@ using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
 typedef pair<int, int> par;
-typedef vector<int> vi;
+typedef vector<ll> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 typedef vector<vp> wgraph;
@@ -27,7 +27,7 @@ typedef vector<vp> wgraph;
 //cout.setf(ios::fixed); cout.precision(4);
 
 #define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v)         \
+#define debugv(v) //         \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
@@ -50,56 +50,65 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
+    int n, m, k, p;
+    cin >> n >> m >> k >> p;
+    int totalcolupdate = 0;
+    int totalrowupdate = 0;
+    vi rowvalue(n);
+    vi colvalue(m);
+    graph matrix(n, vi(m, 0));
+    rep(i, n) rep(j, m)
+    {
+        cin >> matrix[i][j];
+        rowvalue[i] += matrix[i][j];
+        colvalue[j] += matrix[i][j];
+    }
+    priority_queue<ll, vi> q1;                  //Rows (n)
+    priority_queue<ll, vi> q2;                  //Cols (m)
+    priority_queue<ll, vi, greater<ll>> usedq2; //Used cols (m)
     rep(i, n)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        q1.emplace(rowvalue[i]);
     }
-    int result = 0;
-    rep(i, 2 * n)
+
+    rep(i, m)
     {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
+        q2.emplace(colvalue[i]);
     }
-    debugm(memo);
-    cout << result << '\n';
+    ll ans_cols = 0;
+    ll ans_rows = 0;
+    ll temp, temp2;
+    int a = k; // b = k-a
+    rep(i, k)
+    {
+        temp = q2.top();
+        q2.pop();
+        ans_cols += temp;
+        q2.emplace(temp - n * p);
+        usedq2.emplace(temp);
+    }
+    ll ans = ans_cols;
+    for (a = k - 1; a >= 0; a--)
+    {
+        temp = usedq2.top();
+        usedq2.pop();
+        temp2 = q1.top();
+        q1.pop();
+        ans_cols += -temp;
+        ans_rows += (k - a - 1) * p;
+        ans_rows += temp2 - (a)*p;
+
+        q1.emplace(temp2 - m * p);
+        ans = max(ans, ans_cols + ans_rows);
+    }
+    cout << ans << '\n';
 }

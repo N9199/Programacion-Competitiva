@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,50 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
-{
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
-}
+int n, m, a, b;
+vector<set<int>> g;
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
+    cin >> n >> m;
+    g.resize(n);
+    rep(i, m)
+    {
+        cin >> a >> b;
+        g[a - 1].insert(b - 1);
+        g[b - 1].insert(a - 1);
+    }
 
-    rep(i, n)
+    int count = 0;
+    bool out = false;
+    vi marked(n, false);
+    while (true)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        vi arr;
+        rep(i, n)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            if (marked[i])
+                continue;
+            int size = 0;
+            for (auto k : g[i])
+                if (!marked[k])
+                    size++;
+            if (size == 1)
+            {
+                arr.pb(i);
+                out = true;
+            }
         }
-    }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
+        for (int i : arr)
+            marked[i] = true;
+        if (out)
         {
-            result += f(i, l - widths[i]);
-            result %= MOD;
+            out = false;
+            count++;
         }
+        else
+            break;
     }
-    debugm(memo);
-    cout << result << '\n';
+
+    cout << count << '\n';
 }

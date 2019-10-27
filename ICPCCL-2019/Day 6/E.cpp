@@ -50,56 +50,67 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
 }
+
+struct FenwickTree {
+    vector<int> ft;
+    FenwickTree(int n) { ft.assign(n+1, 0); }
+    // prefix sum query (sum in range 1 .. b)
+    int psq(int b) {
+        int sum = 0;
+        for (; b; b -= (b & -b)) sum += ft[b];
+        return sum;
+    }
+    // range sum query (sum in range a .. b)
+    int rsq(int a, int b) {
+        return psq(b) - psq(a-1);
+    }
+    // increment k'th value by v (and propagate)
+    void add(int k, int v) {
+        for (; k < ft.size(); k += (k & -k)) ft[k] += v;
+    }
+    // increment range [i ... j] with v (and propagate)
+    void range_add(int i, int j, int v) {
+        add(i, v); add(j+1, -v);
+    }
+};
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    int t;
+    cin >> t;
+    rep(_, t)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        int n;
+        cin >> n;
+        umap<string, int> m;
+        string s;
+        rep(i, n)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            cin >> s;
+            m[s] = i;
         }
-    }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
+        FenwickTree moves(n);
+        vi perm(n);
+        vi invperm(n);
+        rep(i, n)
         {
-            result += f(i, l - widths[i]);
-            result %= MOD;
+            cin >> s;
+            invperm[i] = m[s];
+            perm[m[s]] = i;
         }
+        int total = 0;
+        for (int i = 0; i < n; i++)
+        {
+            total += invperm[i] - i + moves.psq(invperm[i] + 1);
+      //      -moves.psq(invperm[i]);
+            moves.range_add(1, invperm[i], 1);
+        }
+        cout << total << '\n';
     }
-    debugm(memo);
-    cout << result << '\n';
 }

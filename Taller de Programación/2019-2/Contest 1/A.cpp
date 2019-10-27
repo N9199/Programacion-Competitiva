@@ -4,13 +4,13 @@ using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
 typedef pair<int, int> par;
-typedef vector<int> vi;
+typedef vector<ll> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 typedef vector<vp> wgraph;
 
-#define rep(i, n) for (int i = 0; i < (int)n; i++)
-#define repx(i, a, b) for (int i = a; i < (int)b; i++)
+#define rep(i, n) for (int i = 0; i < (int)n; ++i)
+#define repx(i, a, b) for (size_t i = a; i < (size_t)b; ++i)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a;)
 
 #define pb push_back
@@ -32,7 +32,7 @@ typedef vector<vp> wgraph;
     for (auto e : v)      \
         cerr << " " << e; \
     cerr << endl
-#define debugm(m)                                        \
+#define debugm(m)  //\
     cerr << #m << endl;                                  \
     rep(i, (int)m.size())                                \
     {                                                    \
@@ -50,56 +50,66 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << _p.first << ' ' << _p.second;
+    return _os;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
+    int n, q;
+    cin >> n >> q;
+    if (q == 0)
+        return 0;
+    vi a(n);
+    deque<ll> deq;
     rep(i, n)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        cin >> a[i];
+        deq.eb(a[i]);
     }
-    int result = 0;
+    vi queries(q);
+    rep(i, q)
+    {
+        cin >> queries[i];
+    }
+    int mod = n - 1;
+    int t = 0;
+    ll maxE = *max_element(a.begin(), a.end());
+
+    umap<int, par> out;
+    par temp;
     rep(i, 2 * n)
     {
-        if (heights[i] >= 0)
+        temp.first = deq.front();
+        deq.pop_front();
+        temp.second = deq.front();
+        deq.pop_front();
+        out[i + 1] = temp;
+        if (temp.first > temp.second)
         {
-            result += f(i, l - widths[i]);
-            result %= MOD;
+            deq.eb(temp.second);
+            deq.emplace_front(temp.first);
+        }
+        else
+        {
+            deq.eb(temp.first);
+            deq.emplace_front(temp.second);
         }
     }
-    debugm(memo);
-    cout << result << '\n';
+    for (auto query : queries)
+    {
+        if (query <= n)
+        {
+            cout << out[query] << '\n';
+        }
+        else
+        {
+            int offset = (query - n) % (n - 1);
+            cout << out[n + offset] << '\n';
+            //debugx(n + offset);
+        }
+    }
 }

@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,62 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+//g has vectors of pairs of the form (w, index)
+int dijsktra(wgraph g, int start, int end)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
+    int n = g.size();
+    vi cost(n, 1e9); //~INT_MAX/2
+    priority_queue<par, vp, greater<par>> q;
 
-    int result = 0;
-    rep(j, 2 * n)
+    q.emplace(0, start);
+    cost[start] = 0;
+    while (not q.empty())
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+        int u = q.top().second, w = q.top().first;
+        q.pop();
+
+        // we skip all nodes in the q that we have discovered before at a lower cost
+        if (cost[u] < w)
+            continue;
+
+        for (auto v : g[u])
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            if (cost[v.second] > v.first + w)
+            {
+                cost[v.second] = v.first + w;
+                q.emplace(cost[v.second], v.second);
+            }
         }
     }
-    debugm(memo);
-    return memo[i][length] = result;
+
+    return cost[end];
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    int m;
+    int n = 501;
+    cin >> m;
+    wgraph g(n);
+    int a, b, w;
+    rep(i, m)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        cin >> a >> b >> w;
+        g[a].eb(w, b);
+        g[b].eb(w, a);
     }
-    int result = 0;
-    rep(i, 2 * n)
+    int u;
+    cin >> u;
+    int q;
+    cin >> q;
+    int v;
+    rep(i, q)
     {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
+        cin >> v;
+        int c = dijsktra(g, u, v);
+        if (c == (int)1e9)
+            cout << "NO PATH\n";
+        else
+            cout << c << '\n';
     }
-    debugm(memo);
-    cout << result << '\n';
 }

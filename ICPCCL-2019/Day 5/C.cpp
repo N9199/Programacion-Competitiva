@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,61 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+bool dfs(int i, int col, vi &visited, graph &g)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
+    visited[i] = col;
+    for (auto k : g[i])
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+        if (visited[k] != -1)
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            if (visited[k] == col)
+                return false;
         }
+        else if (!dfs(k, 1 - col, visited, g))
+            return false;
     }
-    debugm(memo);
-    return memo[i][length] = result;
+    return true;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
-    rep(i, n)
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    int t;
+    cin >> t;
+    rep(tt, t)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        cout << "Scenario #" << tt + 1 << ":\n";
+        int n, m;
+        cin >> n >> m;
+        graph g(n, vi(0));
+        vi visited(n, -1);
+        rep(i, m)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            int a, b;
+            cin >> a >> b;
+            g[a - 1].eb(b - 1);
+            g[b - 1].eb(a - 1);
+        }
+        bool nice = true;
+        rep(i, n)
+        {
+            if (visited[i] == -1)
+            {
+                if (!dfs(i, 0, visited, g))
+                {
+                    nice = false;
+                    break;
+                }
+            }
+        }
+        if (!nice)
+        {
+            cout << "Suspicious bugs found!\n\n";
+        }
+        else
+        {
+            cout << "No suspicious bugs found!\n\n";
         }
     }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    cout << result << '\n';
 }

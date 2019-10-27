@@ -27,7 +27,7 @@ typedef vector<vp> wgraph;
 //cout.setf(ios::fixed); cout.precision(4);
 
 #define debugx(x) cerr << #x << ": " << x << endl
-#define debugv(v)         \
+#define debugv(v)//         \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
@@ -50,56 +50,69 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
-
-int f(int i, int length)
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
-    {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
-        {
-            result += f(j, length - widths[j]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    return memo[i][length] = result;
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
-
+    int n;
+    cin >> n;
+    vp players(n);
     rep(i, n)
     {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
-        {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
-        }
+        cin >> players[i].first;
+        players[i].second = i;
     }
-    int result = 0;
-    rep(i, 2 * n)
+    sort(players.begin(), players.end());
+
+    debugv(players);
+    vp team1;
+    vp team2;
+    ll vteam1 = 0, vteam2 = 0;
+    rep(i, n / 2)
     {
-        if (heights[i] >= 0)
+        if (vteam1 > vteam2)
         {
-            result += f(i, l - widths[i]);
-            result %= MOD;
+            team1.eb(players[2 * i]);
+            team2.eb(players[2 * i + 1]);
+            vteam1 += players[2 * i].first;
+            vteam2 += players[2 * i + 1].first;
+        }
+        else
+        {
+            team2.eb(players[2 * i]);
+            team1.eb(players[2 * i + 1]);
+            vteam2 += players[2 * i].first;
+            vteam1 += players[2 * i + 1].first;
         }
     }
-    debugm(memo);
-    cout << result << '\n';
+    if (n % 2 == 1)
+    {
+        if (vteam1 > vteam2)
+        {
+            vteam2 += players[n - 1].first;
+            team2.eb(players[n - 1]);
+        }
+        else
+        {
+            vteam1 += players[n - 1].first;
+            team1.eb(players[n - 1]);
+        }
+    }
+    debugv(team1);
+    debugv(team2);
+    cout << team1.size() << '\n';
+    rep(i, team1.size())
+    {
+        cout << (team1[i].second + 1) << ((i == team1.size() - 1) ? "\n" : " ");
+    }
+    cout << team2.size() << '\n';
+    rep(i, team2.size())
+    {
+        cout << (team2[i].second + 1) << ((i == team2.size() - 1) ? "\n" : " ");
+    }
 }

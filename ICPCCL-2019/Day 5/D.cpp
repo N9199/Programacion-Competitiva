@@ -3,7 +3,7 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<int> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
@@ -50,56 +50,55 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-int n, l;
-vi heights, widths;
-graph memo(201, vi(3001, -1));
-const int MOD = (int)1e9 + 7;
+int m, n;
 
-int f(int i, int length)
+int bfs(vector<vector<char>> &g, int x, int y, char c)
 {
-    if (length == 0)
-        return 1;
-    if (memo[i][length] != -1)
-        return memo[i][length];
-
-    int result = 0;
-    rep(j, 2 * n)
+    queue<par> q;
+    int ans = 0;
+    q.emplace(x, y);
+    vp dirs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    if(g[x][y] == c)
+        ans++;
+    g[x][y] = c - 1;
+    while (not q.empty())
     {
-        if (heights[i] == widths[j] and length - widths[j] >= 0 and i != j and heights[j] >= 0 and (i % n != j % n))
+        par u = q.front();
+        q.pop();
+
+        for (par d : dirs)
         {
-            result += f(j, length - widths[j]);
-            result %= MOD;
+            if (u.first + d.first >= 0 and u.first + d.first < m)
+                if (g[u.first + d.first][(u.second + d.second + n) % n] == c)
+                {
+                    q.emplace(u.first + d.first, (u.second + d.second + n) % n);
+                    g[u.first + d.first][(u.second + d.second + n) % n] = c - 1;
+                    ans++;
+                }
         }
     }
-    debugm(memo);
-    return memo[i][length] = result;
+    return ans;
 }
 
 int main()
 {
-    cin >> n >> l;
-    heights.assign(2 * n, -1);
-    widths.assign(2 * n, -1);
-    memo.assign(2 * n + 1, vi(l + 1, -1));
+    while (cin >> m >> n)
+    {
+        vector<vector<char>> g(m, vector<char>(n, '0'));
+        rep(i, m) rep(j, n)
+        {
+            cin >> g[i][j];
+        }
+        int x, y;
+        cin >> x >> y;
+        char c = g[x][y];
 
-    rep(i, n)
-    {
-        cin >> widths[i] >> heights[i];
-        if (heights[i] != widths[i])
+        bfs(g, x, y, c);
+        int ans = 0;
+        rep(i, m) rep(j, n)
         {
-            heights[n + i] = widths[i];
-            widths[n + i] = heights[i];
+            ans = max(ans, bfs(g, i, j, c));
         }
+        cout << ans << '\n';
     }
-    int result = 0;
-    rep(i, 2 * n)
-    {
-        if (heights[i] >= 0)
-        {
-            result += f(i, l - widths[i]);
-            result %= MOD;
-        }
-    }
-    debugm(memo);
-    cout << result << '\n';
 }
