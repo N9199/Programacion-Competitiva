@@ -3,14 +3,14 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<ll> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 typedef vector<vp> wgraph;
 
-#define rep(i, n) for (int i = 0; i < (int)n; i++)
-#define repx(i, a, b) for (size_t i = a; i < (size_t)b; i++)
+#define rep(i, n) for (int i = 0; i < (int)n; ++i)
+#define repx(i, a, b) for (size_t i = a; i < (size_t)b; ++i)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a;)
 
 #define pb push_back
@@ -26,7 +26,7 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x)  cerr << #x << ": " << x << endl
+#define debugx(x) cerr << #x << ": " << x << endl
 #define debugv(v)         \
     cerr << #v << ":";    \
     for (auto e : v)      \
@@ -50,62 +50,43 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
+{
+    _os << _p.first << ' ' << _p.second;
+    return _os;
+}
+
 int main()
 {
-    int MOD = 1e9 + 7;
-    int T;
-    cin >> T;
-    int a, b, c, n;
-    while (cin >> a >> b >> c >> n)
+    int t;
+    cin >> t;
+    rep(_, t)
     {
-        vi F(n);
-        F[0] = 1;
-        ll sum = F[0];
-        priority_queue<ll, vi, less<ll>> maxheap;
-        priority_queue<ll, vi, greater<ll>> minheap;
-        maxheap.emplace(1);
-        repx(i, 1, n)
+        int n, u;
+        cin >> n >> u;
+        vi array(n + 1);
+        rep(__, u)
         {
-            F[i] = (a * maxheap.top() + b * (i + 1) + c) % MOD;
-            sum += F[i];
-            if (minheap.size() == 0)
-            {
-                minheap.emplace(F[i]);
-                continue;
-            }
-            if (minheap.size() < maxheap.size())
-            {
-                if (F[i] < maxheap.top())
-                {
-                    maxheap.emplace(minheap.top());
-                    minheap.pop();
-                    minheap.emplace(F[i]);
-                }
-                else
-                {
-                    minheap.emplace(F[i]);
-                }
-            }
-            else
-            {
-                if (F[i] <= minheap.top())
-                {
-                    maxheap.emplace(F[i]);
-                }
-                else
-                {
-                    maxheap.emplace(minheap.top());
-                    minheap.pop();
-                    minheap.emplace(F[i]);
-                }
-            }
-            debugx(F[i]);
-            debugx(maxheap.top());
-            debugx(minheap.top());
-            debugx((int)maxheap.size() - (int)minheap.size());
-            assert(maxheap.top() <= minheap.top());
-            assert(maxheap.size() == minheap.size() or maxheap.size() == minheap.size() + 1);
+            int l, r, val;
+            cin >> l >> r >> val;
+            array[l] += val;
+            array[r + 1] -= val;
         }
-        cout << sum << '\n';
+
+        vi out(n + 1);
+        rep(i, n + 1)
+        {
+            out[i] = (i > 0) ? out[i - 1] + array[i] : array[i];
+        }
+
+        int q;
+        cin >> q;
+        rep(__, q)
+        {
+            int i;
+            cin >> i;
+            cout << out[i] << '\n';
+        }
     }
 }

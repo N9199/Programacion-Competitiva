@@ -3,14 +3,14 @@ using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
+typedef pair<ll, int> par;
 typedef vector<ll> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 typedef vector<vp> wgraph;
 
-#define rep(i, n) for (int i = 0; i < (int)n; i++)
-#define repx(i, a, b) for (size_t i = a; i < (size_t)b; i++)
+#define rep(i, n) for (int i = 0; i < (int)n; ++i)
+#define repx(i, a, b) for (size_t i = a; i < (size_t)b; ++i)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a;)
 
 #define pb push_back
@@ -26,7 +26,7 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x)  cerr << #x << ": " << x << endl
+#define debugx(x) cerr << #x << ": " << x << endl
 #define debugv(v)         \
     cerr << #v << ":";    \
     for (auto e : v)      \
@@ -50,62 +50,67 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
+{
+    _os << _p.first << ' ' << _p.second;
+    return _os;
+}
+
 int main()
 {
-    int MOD = 1e9 + 7;
-    int T;
-    cin >> T;
-    int a, b, c, n;
-    while (cin >> a >> b >> c >> n)
+    int n = 30000;
+    int maxt = 10 * 60;
+    priority_queue<par, vp, greater<par>> q;
+    vi mem(n + 1);
+    set<int> free;
+    vi temp(n);
+    generate(temp.begin(), temp.end(), []() { static int i = 0;  return ++i; });
+    free.insert(temp.begin(), temp.end());
+
+    ll t = 0;
+    ll last = 0;
+    string s;
+    char c;
+    int block_n = 0;
+    while (getline(cin, s))
     {
-        vi F(n);
-        F[0] = 1;
-        ll sum = F[0];
-        priority_queue<ll, vi, less<ll>> maxheap;
-        priority_queue<ll, vi, greater<ll>> minheap;
-        maxheap.emplace(1);
-        repx(i, 1, n)
+        stringstream str;
+        str << s;
+        str >> t;
+        str >> c;
+        if (last != t)
         {
-            F[i] = (a * maxheap.top() + b * (i + 1) + c) % MOD;
-            sum += F[i];
-            if (minheap.size() == 0)
+            while (!q.empty() and q.top().first < t)
             {
-                minheap.emplace(F[i]);
-                continue;
+                par a = q.top();
+                q.pop();
+                if (mem[a.second] < t)
+                {
+                    free.emplace(a.second);
+                    mem[a.first] = 0;
+                }
             }
-            if (minheap.size() < maxheap.size())
+        }
+        if (str >> block_n)
+        {
+            //assert(c == '.');
+            if (free.find(block_n) == free.end())
             {
-                if (F[i] < maxheap.top())
-                {
-                    maxheap.emplace(minheap.top());
-                    minheap.pop();
-                    minheap.emplace(F[i]);
-                }
-                else
-                {
-                    minheap.emplace(F[i]);
-                }
+                cout << "+\n";
+                mem[block_n] = t + maxt - 1;
+                q.emplace(t + maxt - 1, block_n);
             }
             else
-            {
-                if (F[i] <= minheap.top())
-                {
-                    maxheap.emplace(F[i]);
-                }
-                else
-                {
-                    maxheap.emplace(minheap.top());
-                    minheap.pop();
-                    minheap.emplace(F[i]);
-                }
-            }
-            debugx(F[i]);
-            debugx(maxheap.top());
-            debugx(minheap.top());
-            debugx((int)maxheap.size() - (int)minheap.size());
-            assert(maxheap.top() <= minheap.top());
-            assert(maxheap.size() == minheap.size() or maxheap.size() == minheap.size() + 1);
+                cout << "-\n";
         }
-        cout << sum << '\n';
+        else
+        {
+            q.emplace(t + maxt - 1, *free.begin());
+            mem[*free.begin()] = t + maxt - 1;
+            cout << *free.begin() << '\n';
+            free.erase(*free.begin());
+        }
+        last = t;
     }
 }

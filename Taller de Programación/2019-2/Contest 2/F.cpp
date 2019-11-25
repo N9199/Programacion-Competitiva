@@ -1,16 +1,18 @@
+#pragma GCC optimize("Ofast")
+
 #include <bits/stdc++.h>
 using namespace std;
 
 typedef long long ll;
 typedef unsigned long long ull;
-typedef pair<int, int> par;
-typedef vector<int> vi;
+typedef pair<ll, int> par;
+typedef vector<ll> vi;
 typedef vector<par> vp;
 typedef vector<vi> graph;
 typedef vector<vp> wgraph;
 
-#define rep(i, n) for (int i = 0; i < (int)n; i++)
-#define repx(i, a, b) for (size_t i = a; i < (size_t)b; i++)
+#define rep(i, n) for (int i = 0; i < (int)n; ++i)
+#define repx(i, a, b) for (size_t i = a; i < (size_t)b; ++i)
 #define invrep(i, a, b) for (int i = b; i-- > (int)a;)
 
 #define pb push_back
@@ -26,8 +28,8 @@ typedef vector<vp> wgraph;
 //ios::sync_with_stdio(0); cin.tie(0);
 //cout.setf(ios::fixed); cout.precision(4);
 
-#define debugx(x)  //cerr << #x << ": " << x << endl
-#define debugv(v)  //        \
+#define debugx(x) cerr << #x << ": " << x << endl
+#define debugv(v)         \
     cerr << #v << ":";    \
     for (auto e : v)      \
         cerr << " " << e; \
@@ -50,17 +52,6 @@ typedef vector<vp> wgraph;
     }
 #define print(x) copy(x.begin(), x.end(), ostream_iterator<int>(cout, “”)), cout << endl
 
-vector<int> primes;
-//Criba
-void sieve(int n)
-{
-    vector<bool> is_prime(n + 1, true);
-    int limit = (int)floor(sqrt(n));
-    repx(i, 2, limit + 1) if (is_prime[i]) for (int j = i * i; j <= n; j += i)
-        is_prime[j] = false;
-    repx(i, 2, n + 1) if (is_prime[i]) primes.eb(i);
-}
-
 template <typename _Ty1, typename _Ty2>
 std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 {
@@ -70,96 +61,66 @@ std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
 
 struct FenwickTree
 {
-    vector<bool> div;
-    vector<int> FT;
-    int n;
-    FenwickTree(int N) : n(N + 1)
+    vector<ll> FT;
+    FenwickTree(int N)
     {
         FT.assign(N + 1, 0);
-        div.assign(N + 1, false);
-        sieve(N + 2);
     }
 
-    int query(int i)
+    ll query(int i)
     {
-        int ans = 0;
+        ll ans = 0;
         for (; i; i -= i & (-i))
             ans += FT[i];
         return ans;
     }
 
-    int query(int i, int j)
+    ll query(int i, int j)
     {
-        return (query(j) - query(i - 1));
+        return query(j) - query(i - 1);
     }
 
-    void update(int i, int v)
+    void update(int i, ll v)
     {
-        int s = query(i, i);
         for (; i < FT.size(); i += i & (-i))
-            FT[i] += v - s; //Set to v;
+            FT[i] += v;
     }
 
-    void update(ll k)
+    //Queries puntuales, Updates por rango
+    void update(int i, int j, ll v)
     {
-        auto it = primes.rbegin();
-        int j = 0;
-        while (it != primes.rend() and *it > k)
-        {
-            for (int i = (*it); i <= n; i += (*it))
-            {
-                if (not div[i])
-                {
-                    update(i, 1);
-                    div[i] = true;
-                }
-            }
-            it++;
-            j++;
-        }
-        primes.erase(primes.begin() + (primes.size() - j), primes.end());
+        update(i, v);
+        update(j + 1, -v);
     }
 };
 
-int inline par2int(const par &a)
-{
-    return a.first * (int)1e5 + a.second;
-}
-
-int main()
+int main(int argc, char const *argv[])
 {
     ios::sync_with_stdio(0);
     cin.tie(0);
     cout.tie(0);
-    int q;
-    cin >> q;
-    int n, k;
-    int n_max;
-    umap<int, par> queries;
-    umap<int, int> out;
-    auto comp = [](par &a, par &b) -> bool {
-        return a.second > b.second;
-    };
-
-    vp s;
-
-    rep(i, q)
+    int n, m, c;
+    cin >> n >> m >> c;
+    FenwickTree ft(n);
+    ft.update(1, n, c);
+    int u, v;
+    ll k;
+    int p;
+    char t;
+    rep(_, m)
     {
-        cin >> n >> k;
-        queries[i] = {n, k};
-        s.eb(n, k);
-        n_max = max(n, n_max);
+        cin >> t;
+        if (t == 'Q')
+        {
+            cin >> p;
+            cout << ft.query(p) << '\n';
+        }
+        else
+        {
+            //assert(t == 'S');
+            cin >> u >> v >> k;
+            ft.update(u, v, k);
+        }
     }
-    sort(s.begin(), s.end(), comp);
-    FenwickTree st(n_max + 2); //Fenwick Tree
-    for (auto &query : s)
-    {
-        //Responder queries
-        st.update(query.second);
-        out[par2int(query)] = (query.first - 2 + 1) - st.query(2, query.first);
-    }
-    rep(i, q)
-    {
-        cout << out[par2int(queries[i])] << '\n';
-    }
+    return 0;
 }

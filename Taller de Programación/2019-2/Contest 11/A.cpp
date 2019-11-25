@@ -20,7 +20,7 @@ typedef vector<vll> vvll;
 #define umap unordered_map
 #define eb emplace_back
 
-#define debugx(x) //cerr << #x << ": " << x << endl
+#define debugx(x) cerr << #x << ": " << x << endl
 #define debugv(v)         \
     cerr << #v << ": ";   \
     for (auto e : v)      \
@@ -220,7 +220,7 @@ ll granville(ll n, ll r, int p)
     ll m = pow(p, MOD[p]);
     if (e >= MOD[p])
         return 0;
-    ll ans = fastPow(p, e, p);
+    ll ans = fastPow(p, e, m);
     ans = mul(ans, F(n, p), m);
     ans = mul(ans, fastPow(F(r, p), pow(p, MOD[p] - 1) * (p - 1) - 1, m), m);
     ans = mul(ans, fastPow(F(n - r, p), pow(p, MOD[p] - 1) * (p - 1) - 1, m), m);
