@@ -54,80 +54,60 @@ inline bool marked(int i, int mask)
     return (mask & (1 << i));
 }
 
-vvll dp;
-wgraph origin;
-ll func(int mask, int s, int last)
-{
-    if (mask == (1 << n) - 1)
-        return dp[s][mask] = 0;
-    if (dp[s][mask] != -1)
-        return dp[s][mask];
-    ll ans = 9e18;
-    ll temp, temp2, temp3;
-    vi in = {mask, s, last};
-    rep(i, n)
-    {
-        int a = 0;
-        if (marked(i, mask))
-            continue;
+vector<ll> dp;
 
-        temp = dist(i, last); //Distance to i from wherever it was, it may be the origin
-        if ((mask | (1 << i)) < (1 << n) - 1 and not s)
+ll func(int mask)
+{
+    if (dp[mask] != -1)
+        return dp[mask];
+    ll ans = 1e9;
+    invrep(i, 0, n)
+    {
+        if (marked(i, mask))
         {
-            temp3 = func(mask | (1 << i), 1, i);
-            temp2 = dist(i, n) + func(mask | (1 << i), 0, n);
-            if (temp3 <= temp2)
+            ans = min(ans, func(mask & ~(1 << i)) + 2 * dist(n, i));
+            invrep(j, 0, i)
             {
-                a++;
-                temp2 = temp3;
+                if (marked(j, mask))
+                {
+                    ans = min(ans, func(mask & ~(1 << i) & ~(1 << j)) + dist(n, i) + dist(n, j) + dist(i, j));
+                }
             }
-            temp2 += temp;
-            if (temp2 < ans)
-            {
-                ans = temp2;
-                origin[s][mask] = {i, a};
-            }
-        }
-        else
-        {
-            temp2 = temp + dist(i, n) + func(mask | (1 << i), 0, n);
-            if (temp2 < ans)
-            {
-                ans = temp2;
-                origin[s][mask] = {i, 0};
-            }
+            return dp[mask] = ans;
         }
     }
-    return dp[s][mask] = ans;
+    return dp[mask] = ans;
 }
 
-string path()
+string path(int mask)
 {
-    ll bound = dp[0][0];
+    //debugx(mask);
+    if (mask == 0)
+        return "0";
     string ans = "0 ";
-    int marked = 0;
-    ll accum = 0;
-    int next = 0;
-    int last = n;
-    int s = 0;
-    while (marked < (1 << n) - 1)
+    invrep(i, 0, n)
     {
-        next = origin[s][marked].first;
-        s = origin[s][marked].second;
-        marked = marked | (1 << next);
-        accum += dist(next, last);
-        ans += to_string(next + 1) + " ";
-        last = next;
-        if (s == 0)
+        if (marked(i, mask))
         {
-            ans += "0 ";
-            accum += dist(next, n);
-            last = n;
+            ans += to_string(i+1);
+            ans += " ";
+            invrep(j, 0, i)
+            {
+                if (marked(j, mask) and dp[mask] - dp[mask & ~(1 << i) & ~(1 << j)] == dist(n, i) + dist(n, j) + dist(i, j))
+                {
+                    ans += to_string(j+1);
+                    ans += " ";
+                    ans += path(mask & ~(1 << i) & ~(1 << j));
+                    return ans;
+                }
+            }
+            if (dp[mask] - dp[mask & ~(1 << i)] == 2 * dist(n, i))
+            {
+                ans += path(mask & ~(1 << i));
+                return ans;
+            }
         }
     }
-    debugx(accum);
-    assert(bound == accum);
-    return ans;
 }
 
 int main(int argc, char const *argv[])
@@ -135,8 +115,8 @@ int main(int argc, char const *argv[])
     int x, y;
     cin >> x >> y;
     cin >> n;
-    dp.assign(2, vll(1 << n, -1));
-    origin.assign(2, vii(1 << n, {-1, -1}));
+    dp.assign((1 << n), -1);
+    dp[0] = 0;
     items.resize(n + 1);
     items[n] = {x, y};
     rep(i, n)
@@ -144,9 +124,10 @@ int main(int argc, char const *argv[])
         cin >> x >> y;
         items[i] = {x, y};
     }
-    debugv(items);
-    cout << func(0, 0, n) << '\n';
-    cout << path() << '\n';
+    //debugv(items);
+    cout << func((1 << n) - 1) << '\n';
+    //debugv(dp);
+    cout << path((1 << n) - 1) << '\n';
 
     return 0;
 }
