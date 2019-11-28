@@ -165,3 +165,5 @@ tester*
 input/
 output/
 diff/
+*.zip
+ignore/
