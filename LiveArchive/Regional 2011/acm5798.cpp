@@ -1,137 +1,196 @@
 #include <bits/stdc++.h>
 using namespace std;
-typedef vector<int> vi;
 
+typedef vector<int> vi;
+typedef unsigned int uint;
 typedef long long ll;
 typedef pair<int, int> par;
-typedef vector<int > vi;
-typedef vector<par > vp;
-typedef vector<vi > graph;
+typedef vector<int> vi;
+typedef vector<par> vp;
+typedef vector<vi> graph;
 
-typedef vector<vp > wgraph;
+typedef vector<vp> wgraph;
 
-#define rep(i,n) for(int i=0; i<(int)n;++i)
-#define repx(i,a,n) for(int i=a; i<(int)n;++i)
+#define rep(i, n) for (int i = 0; i < (int)n; ++i)
+#define repx(i, a, n) for (int i = a; i < (int)n; ++i)
 #define pb push_back
 #define eb emplace_back
+
+#define debugx(x) cerr << #x << ": " << x << endl
+#define debugv(v)         \
+    cerr << #v << ": ";   \
+    for (auto e : v)      \
+        cerr << e << " "; \
+    cerr << endl
+#define debugm(m)             \
+    cerr << #m << ":\n";      \
+    for (auto &v : m)         \
+    {                         \
+        for (auto e : v)      \
+            cerr << e << " "; \
+        cerr << "\n";         \
+    }                         \
+    cerr << endl
+
+template <typename _Ty1, typename _Ty2>
+std::ostream &operator<<(std::ostream &_os, const std::pair<_Ty1, _Ty2> &_p)
+{
+    _os << '(' << _p.first << ',' << _p.second << ')';
+    return _os;
+}
+
+int base, p;
 
 int mulmod(uint a, uint b, uint p)
 {
     int x = 0, y = a % p;
-    while (b) {
-        if (b & 1) x = (x + y) % p;
+    while (b)
+    {
+        if (b & 1)
+            x = (x + y) % p;
         y = (y << 1) % p;
         b >>= 1;
     }
     return x % p;
 }
 
-
 int fastPow(int x, int n, int MOD)
 {
     int ret = 1;
-    while (n) {
-        if (n & 1) ret = mulmod(ret, x, MOD);
+    while (n)
+    {
+        if (n & 1)
+            ret = mulmod(ret, x, MOD);
         x = mulmod(x, x, MOD);
         n >>= 1;
     }
     return ret;
 }
 
-class seg_tree{
-vi tree, arr;
-int n, p, b;
-vi Bpow;
+struct Jupiter
+{
+    int value, size;
+    Jupiter() { value = 0, size = 0; }
+    Jupiter(int x) { value = x, size = 1; }
+    Jupiter(const Jupiter &a, const Jupiter &b) { value = (mulmod(a.value, fastPow(base, b.size, p), p) + b.value) % p, size = a.size + b.size; }
+};
 
-    void build(int node, int left, int right){
-        if(left == right){
-            tree[node] = arr[left]%p;
-        }else{
-            int mid = (right + left)/2;
-            build(2*node, left, mid);
-            build(2*node+1, mid+1, right);
-            tree[node] = (mulmod(tree[2*node], Bpow[right-mid], p)+tree[2*node+1])%p;//operation
+template <class node>
+class ST
+{
+    vector<node> *arr, st;
+    int n;
+
+    void build(int u, int i, int j)
+    {
+        if (i == j)
+        {
+            st[u] = (*arr)[i];
+            return;
         }
+        int m = (i + j) / 2, l = u * 2 + 1, r = u * 2 + 2;
+        build(l, i, m);
+        build(r, m + 1, j);
+        st[u] = node(st[l], st[r]);
     }
 
-    int query(int node, int start, int end, int l, int r){
-        if(r < start or l > end)
-            return 0; //Neutro
-        if(l <= start and end <= r){
-            //cout<<tree[node]<<endl; 
-            return tree[node];
-        }
-        int mid = (start + end)/2;
-        int p1 = query(2*node, start, mid, l, r);
-        int p2 = query(2*node+1, mid+1, end, l, r);
-        //cout<<p1<<" "<<p2<<endl;
-        //cout<<Bpow[end-mid]<<endl;
-        return (mulmod(p1, Bpow[end-mid], p) + p2)%p;
+    node query(int a, int b, int u, int i, int j)
+    {
+        if (j < a or b < i)
+            return node();
+        if (a <= i and j <= b)
+            return st[u];
+        int m = (i + j) / 2, l = u * 2 + 1, r = u * 2 + 2;
+        node x = query(a, b, l, i, m);
+        node y = query(a, b, r, m + 1, j);
+        return node(x, y);
     }
 
-    void update(int node, int start, int end, int i, int val){
-        if(start == end){
-            //cout<<start<<endl;
-            arr[i] = val;
-            tree[node] = mulmod(arr[i],fastPow(b, n-i-1, p), p);            
-        }else{
-            int mid = (start + end)/2;
-            if(start <= i and i <= mid){
-                update(2*node, start, mid, i, val);
-            }else{
-                update(2*node+1, mid+1, end, i, val);
-            }
-            //cout<<Bpow[end-mid]<<" "<<mid<<" "<<end<<endl;
-            tree[node] = (mulmod(tree[2*node], Bpow[end-mid], p) + tree[2*node+1])%p;//operation
+    void update(int a, ll value, int u, int i, int j)
+    {
+        if (j < a or a < i)
+            return;
+        if (i == j)
+            st[a] = node(value);
+        else
+        {
+            int m = (i + j) / 2, l = u * 2 + 1, r = u * 2 + 2;
+            update(a, value, l, i, m);
+            update(a, value, r, m + 1, j);
+            st[u] = node(st[l], st[r]);
         }
     }
 
 public:
-    seg_tree(vi& A, int pr, int br){
-        p = pr;
-        b = br;
-        arr = A;
-        n = A.size();
-        tree.resize(4*n+2);
-        Bpow.resize(n);
-        Bpow[0] = 1;
-        repx(i,1,n)
-            Bpow[i] = (Bpow[i-1]*b)%p;
-
-        cout<<endl;
-        build(1, 0, n-1);
+    ST(vector<node> &v)
+    {
+        arr = &v;
+        n = v.size();
+        st.resize(n * 4 + 5);
+        build(0, 0, n - 1);
     }
 
-    int query(int l, int r){
-        //cout<<"query"<<endl;
-        return query(1, 0 ,n-1, l, r);
+    node query(int a, int b)
+    {
+        return query(a, b, 0, 0, n - 1);
+    }
+    // 1-Indexed?
+    void update(int a, ll value)
+    {
+        update(a, value, 0, 0, n - 1);
     }
 
-    void update(int i, int value){
-        //cout<<"update"<<endl;
-        update(1, 0, n-1, i, value);
+    void debug()
+    {
+        cerr << "Array: ";
+        rep(i, n)
+        {
+            node temp = query(i, i + 1);
+            cerr << make_pair(temp.value, temp.size) << ' ';
+        }
+        cerr << endl;
+        rep(i, n - 1)
+        {
+            node temp = query(i, i + 2);
+            cerr << make_pair(temp.value, temp.size) << ' ';
+        }
+        cerr << endl;
+        cerr << "ST: ";
+        rep(i, 4 * n+5)
+        {
+            node temp = (*arr)[i];
+            cerr << make_pair(temp.value, temp.size) << ' ';
+        }
+        cerr << endl;
     }
 };
 
-int main(){
-    int b,p,l,n;
-    while(cin>>b>>p>>l>>n){
-        if(!(b && p && l && n))
+int main()
+{
+    int l, n;
+    while (cin >> base >> p >> l >> n)
+    {
+        if (base == 0)
             return 0;
-        vi v(l);
-        seg_tree t(v, p, b);
+        vector<Jupiter> v(l);
+        ST<Jupiter> t(v);
         char c;
-        int j,a;
-        rep(i,n){
-            cin>>c>>j>>a;
-            if(c == 'E')
-                t.update(j-1,a);
-            else if(c == 'H')
-                cout<<t.query(j-1,a-1)<<'\n';
+        int j, a;
+        rep(i, n)
+        {
+            cin >> c >> j >> a;
+            if (c == 'E')
+                t.update(j, a);
+            else
+            {
+                debugx(make_pair(j, a));
+                cout << t.query(j - 1, a).value << '\n';
+            }
+            t.debug();
         }
-        cout<<"-\n";
-        //rep(i,4*n+2)
-            //cout<<t.query(i,i)<<'\n';
+        cout << "-\n";
+
+        t.debug();
     }
     return 0;
 }
