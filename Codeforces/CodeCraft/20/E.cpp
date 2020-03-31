@@ -50,29 +50,27 @@ par func(int i, int bitmask)
 {
     //debugx(make_pair(i, bitmask));
     if (i >= n)
-    {
-        if ((bitmask + 1) >> p)
-            return {0, 0};
-        else
-            return {-1e9, -1};
-    }
+        return ((bitmask + 1) >> p) ? make_pair(0, 0) : make_pair((int)-1e9, -1);
+
     if (dp[i][bitmask].first != -1)
         return dp[i][bitmask];
-    auto temp = func(i + 1, bitmask);
-    par ans = temp;
+    par temp;
+    par ans = func(i + 1, bitmask);
     rep(j, p)
     {
         if (bitmask & (1 << j))
             continue;
         temp = func(i + 1, bitmask + (1 << j));
-        if ((ans.first < temp.first + s[i][j + 1]) or (ans.first == temp.first + s[i][j + 1] and ans.second > temp.second))
-            ans.first = temp.first + s[i][j + 1], ans.second = temp.second;
+        temp.first += s[i][j + 1];
+        ans = max(ans, temp);
     }
     if (i >= n - (p + k))
     {
         temp = func(i + 1, bitmask);
-        if (((ans.first < temp.first + s[i][0] and temp.second < k) or (ans.first == temp.first + s[i][0] and ans.second > temp.second)))
-            ans.first = temp.first + s[i][0], ans.second = temp.second + 1;
+        temp.first += s[i][0];
+        temp.second += 1;
+        if (temp.second <= k)
+            ans = max(ans, temp);
     }
 
     return dp[i][bitmask] = ans;
