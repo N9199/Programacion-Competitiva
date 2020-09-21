@@ -32,7 +32,7 @@ typedef vector<vii> wgraph;
 #define uset unordered_set
 
 //Debugs single variables (e.g. int, string)
-#define debugx(x) cerr << #x << ": " << x << endl
+#define debugx(x) //cerr << #x << ": " << x << endl
 //Debugs Iterables (e.g. vi, uset<int>)
 #define debugv(v)         \
     cerr << #v << ":";    \
@@ -63,12 +63,12 @@ ostream &operator<<(ostream &os, const pair<T1, T2> &p)
 class LcaForest
 {
     int n;
+    vi parent;
     vi level;
     vi root;
     graph P;
 
 public:
-    vi parent;
     LcaForest(int n)
     {
         this->n = n;
@@ -94,6 +94,20 @@ public:
         parent[index] = index;
         level[index] = 0;
         root[index] = index;
+    }
+    int Parent(int i) { return parent[i]; }
+    int branch(int i)
+    {
+        if (parent[i] == i)
+            return i;
+        int dist = level[i] - 1;
+        while (dist != 0)
+        {
+            int raise = lg(dist);
+            i = P[i][raise];
+            dist -= (1 << raise);
+        }
+        return i;
     }
     int lca(int u, int v)
     {
@@ -126,69 +140,79 @@ int main()
 {
     int n, m;
     cin >> n >> m;
-    LcaForest F(n);
+    LcaForest f(n);
     graph g(n);
-    int u, v;
-    rep(_, m)
+    rep(i, n - 1)
     {
+        int u, v;
         cin >> u >> v;
         u--, v--;
         g[u].eb(v);
         g[v].eb(u);
     }
-
-    F.addRoot(0);
-
-    vi visited(n);
+    f.addRoot(0);
     stack<int> s;
+    vi vis(n);
     s.emplace(0);
-    visited[0] = 1;
-
+    vis[0] = 1;
     while (!s.empty())
     {
         int u = s.top();
         s.pop();
         for (auto v : g[u])
-            if (not visited[v])
+            if (!vis[v])
             {
-                visited[v] = 1;
                 s.emplace(v);
-                F.addLeaf(v, u);
+                vis[v] = 1;
+                f.addLeaf(v, u);
             }
     }
-    int k;
+    debugx(f.branch(5));
+    debugx(f.branch(9));
     rep(_, m)
     {
+        bool flag = false;
+        int p = -1;
+        int cur = -1;
+        int k;
         cin >> k;
-        int curr = -1;
-        int temp;
-        bool flag = true;
-        debugx(k);
-        rep(__, k)
+        rep(i, k)
         {
-            cin >> temp;
-            temp--;
-            debugx(make_pair(curr, temp));
-            if (F.parent[temp] != 0 and flag)
-                temp = F.parent[temp];
-            else
+            cin >> cur;
+            cur--;
+            if (cur == 0 or f.Parent(cur) == 0)
                 continue;
-            
-            if (curr < 0)
-                curr = temp;
+            if (p == -1)
+            {
+                if (f.Parent(cur) != 0)
+                    p = f.Parent(cur);
+            }
             else
             {
-                int lca = F.lca(curr, temp);
-                debugx(lca);
-                if (lca != curr and lca != temp)
-                    flag = false;
+                if (f.Parent(cur) != 0)
+                    cur = f.Parent(cur);
+                if (f.branch(cur) != f.branch(p) and f.branch(cur) != 0 and f.branch(p) != 0)
+                {
+                    cout << "NO\n";
+                    flag = true;
+                    break;
+                }
+                //debugx(make_pair(p, cur));
+                int lca = f.lca(cur, p);
+                if (lca == cur or lca == p)
+                {
+                    if (lca != 0)
+                        p = lca;
+                }
                 else
-                    curr = lca;
+                {
+                    cout << "NO\n";
+                    flag = true;
+                    break;
+                }
             }
         }
-        if (flag)
+        if (!flag)
             cout << "YES\n";
-        else
-            cout << "NO\n";
     }
 }
